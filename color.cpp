@@ -4,9 +4,11 @@
 #include "opencv2/imgcodecs.hpp"
 #include <iostream>
 
-int thresh = 100;
+int thresh = 75;
 cv::RNG rng(12345);
 cv::Mat appleHSV;
+cv::Mat drawing;
+cv::Mat imgApple;
 
 class appleInfo{
     public:
@@ -27,7 +29,7 @@ int main( int argc, char** argv )
 {
     appleInfo apple;
     //get image
-    cv::Mat imgApple = cv::imread(argv[1], cv::IMREAD_COLOR);
+    imgApple = cv::imread(argv[1], cv::IMREAD_COLOR);
     
 
     //convert to HSV
@@ -37,31 +39,34 @@ int main( int argc, char** argv )
     cvtColor( imgApple, appleHSV, cv::COLOR_BGR2GRAY );
     blur( appleHSV, appleHSV, cv::Size(3,3) );
 
+
     //thresh 75 for image1
     const char* source_window = "Source";
     cv::namedWindow( source_window );
     cv::imshow( source_window, imgApple );
-    const int max_thresh = 255;
-    cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, thresh_callback );
+    //const int max_thresh = 255;
+    //cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, thresh_callback );
     thresh_callback(0, 0);
+
+
     cv::waitKey();
 
 
-    /*
-    apple = removeBackground(appleHSV, imgApple, apple);
-    std::cout << "Main: totalPixels" << apple.totalPixels << std::endl;
+    
+    // apple = removeBackground(appleHSV, imgApple, apple);
+    // std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;
 
-    apple = getRed(appleHSV, imgApple, apple);
-    std::cout << "Main: redPixels" << apple.redPixels << std::endl;
+    // apple = getRed(appleHSV, imgApple, apple);
+    // std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
 
-    double percentage = getColorPercent(apple);
-    std::cout << "percent of red present" << percentage << std::endl;
+    // double percentage = getColorPercent(apple);
+    // std::cout << "percent of red present = " << percentage << std::endl;
 
-    cv::imshow("Original", imgApple);
-    //cv::imshow("Threshold Image", imgBack);
-    cv::imshow("Final", apple.image);
-    cv::waitKey(0);
-    */
+    // cv::imshow("Original", imgApple);
+    // //cv::imshow("Threshold Image", imgBack);
+    // cv::imshow("Final", apple.image);
+    // cv::waitKey(0);
+    
 
     return 0;
 }
@@ -83,15 +88,24 @@ void thresh_callback(int, void* )
     boundRect[i] = cv::boundingRect( contours_poly[i] );
     minEnclosingCircle( contours_poly[i], centers[i], radius[i] );
  }
- cv::Mat drawing = cv::Mat::zeros( canny_output.size(), CV_8UC3 );
+ drawing = cv::Mat::zeros( canny_output.size(), CV_8UC3 );
  for( size_t i = 0; i< contours.size(); i++ )
  {
     cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
-    cv::drawContours( drawing, contours_poly, (int)i, color );
-    cv::rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 2 );
-    cv::circle( drawing, centers[i], (int)radius[i], color, 2 );
+    cv::drawContours( imgApple, contours_poly, (int)i, color );
+    cv::rectangle( imgApple, boundRect[i].tl(), boundRect[i].br(), color, 1 );
+    cv::circle( imgApple, centers[i], (int)radius[i], color, 2 );
  }
- cv::imshow( "Contours", drawing );
+ cv::imshow( "Contours", imgApple );
+
+ //new
+//  cv::Mat dst,addweight;
+//  dst = cv::Scalar::all(0);
+//  appleHSV.copyTo( dst, drawing); // copy part of src image according the canny output, canny is used as mask
+// cv::cvtColor(drawing, drawing, cv::COLOR_GRAY2BGR); // convert canny image to bgr
+// cv::addWeighted(appleHSV, 0.5, drawing, 0.5, 0.0, addweight); // blend src image with canny image
+
+// cv::imshow("addwweighted", addweight );
 }
 
 
@@ -104,9 +118,9 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
     cv::Scalar backRightHighRange(150, 255, 255);
 
     cv::Mat imgBack;
-    inRange(desiredImage, backLeftLowRange, backLeftHighRange, imgBack);
+    cv::inRange(desiredImage, backLeftLowRange, backLeftHighRange, imgBack);
     //inRange(desiredImage, backCenterLowRange, backCenterHighRange, imgBack);
-    inRange(desiredImage, backRightLowRange, backRightHighRange, imgBack);
+    cv::inRange(desiredImage, backRightLowRange, backRightHighRange, imgBack);
 
     //imgBack is image with black representing apple
 
@@ -114,7 +128,7 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
     //bitwising with OriginalImage produces nonHSV image
     int totalImagePixels = imgBack.cols * imgBack.rows;
     A.totalPixels = totalImagePixels - cv::countNonZero(imgBack); 
-    std::cout << "size of apple: " << A.totalPixels << std::endl;
+    //std::cout << "size of apple: " << A.totalPixels << std::endl;
 
 
     //perform bitwise on mask
@@ -139,14 +153,14 @@ appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
     cv::Mat finalApple;
 
     //create mask
-    inRange(desiredImage, redLeftLowRange, redLeftHighRange, imgThres);
-    inRange(desiredImage, redRightLowRange, redRightHighRange, imgThres);
+    cv::inRange(desiredImage, redLeftLowRange, redLeftHighRange, imgThres);
+    cv::inRange(desiredImage, redRightLowRange, redRightHighRange, imgThres);
 
     //imgThres is a black and white image wheere white represents the red parts
 
     A.redPixels = cv::countNonZero(imgThres);
-    std::cout << "redPixels: " << A.redPixels << std::endl;
-    std::cout << "totalPixels: " << A.totalPixels << std::endl;
+    //std::cout << "redPixels: " << A.redPixels << std::endl;
+    //std::cout << "totalPixels: " << A.totalPixels << std::endl;
 
 
     //perform bitwise on mask
@@ -159,7 +173,7 @@ appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
 double getColorPercent(appleInfo A){
 
     double percent = (A.redPixels / A.totalPixels) *100.00;
-    std::cout << "percent red: " << percent << std::endl;
+    //std::cout << "percent red: " << percent << std::endl;
     return percent;
 }
 
