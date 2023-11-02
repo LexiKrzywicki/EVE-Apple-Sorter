@@ -54,13 +54,13 @@ int main( int argc, char** argv )
 //THIS IS FOR RED COLOR PERCENT!!!
 
     apple = removeBackground(appleHSV, imgApple, apple);
-    // std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;
+    std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;
 
-    //apple = getRed(appleHSV, imgApple, apple);
-    // std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
+    apple = getRed(appleHSV, imgApple, apple);
+    std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
 
-    // double percentage = getColorPercent(apple);
-    // std::cout << "percent of red present = " << percentage << std::endl;
+    double percentage = getColorPercent(apple);
+    std::cout << "percent of red present = " << percentage << std::endl;
 
     cv::imshow("Original", imgApple);
     //cv::imshow("Threshold Image", imgBack);
@@ -102,7 +102,7 @@ void thresh_callback(int, void* )
  {
     cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
     cv::drawContours( imgApple, contours_poly, (int)i, color );
-    cv::Rect box = cv::rectangle( imgApple, boundRect[i].tl(), boundRect[i].br(), color, 1 );
+    cv::rectangle( imgApple, boundRect[i].tl(), boundRect[i].br(), color, 1 );
     cv::circle( imgApple, centers[i], (int)radius[i], color, 2 );
  }
  //cv::imshow( "Contours", imgApple );
@@ -147,28 +147,32 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
 
 appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
     //HSV values
-    cv::Scalar redLeftLowRange(0, 100, 20);
+    cv::Scalar redLeftLowRange(0, 10, 20);
     //cv::Scalar redLeftHighRange(25, 255, 255);
-    cv::Scalar redLeftHighRange(60, 255, 255);
-    cv::Scalar redRightLowRange(160, 100, 20);
+    cv::Scalar redLeftHighRange(18, 255, 255);
+    cv::Scalar redRightLowRange(160, 10, 20);
     cv::Scalar redRightHighRange(179, 255, 255);
 
-    cv::Mat imgThres;
+    cv::Mat leftThres;
+    cv::Mat rightThres;
     cv::Mat finalApple;
+    cv::Mat mask1;
+    cv::Mat mask2;
+    cv::Mat mask;
 
     //create mask
-    cv::inRange(desiredImage, redLeftLowRange, redLeftHighRange, imgThres);
-    cv::inRange(desiredImage, redRightLowRange, redRightHighRange, imgThres);
+    cv::inRange(desiredImage, redLeftLowRange, redLeftHighRange, leftThres);
+    cv::inRange(desiredImage, redRightLowRange, redRightHighRange, rightThres);
 
-    //imgThres is a black and white image wheere white represents the red parts
+    //combine lower range of HSV wiht higher range to get the mask for the apple
+    mask = leftThres | rightThres;
 
-    A.redPixels = cv::countNonZero(imgThres);
+    
+    cv::bitwise_or(OriginalImage, OriginalImage, finalApple, mask);
+
+    A.redPixels = cv::countNonZero(mask);
     //std::cout << "redPixels: " << A.redPixels << std::endl;
     //std::cout << "totalPixels: " << A.totalPixels << std::endl;
-
-
-    //perform bitwise on mask
-    cv::bitwise_and(OriginalImage, OriginalImage, finalApple, imgThres);
     A.image = finalApple;
 
     return (A);
@@ -180,4 +184,3 @@ double getColorPercent(appleInfo A){
     //std::cout << "percent red: " << percent << std::endl;
     return percent;
 }
-
