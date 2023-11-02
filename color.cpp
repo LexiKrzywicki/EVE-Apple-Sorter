@@ -37,16 +37,18 @@ int main( int argc, char** argv )
 
 
 //THIS IS FOR BOUNDING BOX
-    // cvtColor(imgApple, appleHSV, cv::COLOR_BGR2GRAY );
-    // blur( appleHSV, appleHSV, cv::Size(3,3) );
+    //convert image to grayscale and blue to reduce noise
+    //cvtColor(imgApple, appleHSV, cv::COLOR_BGR2GRAY );
+    //blur( appleHSV, appleHSV, cv::Size(3,3) );
 
-    // //thresh 75 for image1
+    //below code if to easily change thresh and see result
     // const char* source_window = "Source";
     // cv::namedWindow( source_window );
     // cv::imshow( source_window, imgApple );
     // const int max_thresh = 255;
     // cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, thresh_callback );
-    // thresh_callback(0, 0);
+    
+    //thresh_callback(0, 0);
 
 
 //THIS IS FOR RED COLOR PERCENT!!!
@@ -75,28 +77,38 @@ void thresh_callback(int, void* )
 {
 
  cv::Mat canny_output;
- Canny( appleHSV, canny_output, thresh, thresh*2 );
+
+ Canny( appleHSV, canny_output, thresh, thresh*2 );  // used to detect edges
+ 
  std::vector<std::vector<cv::Point> > contours;
- findContours( canny_output, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
+ findContours( canny_output, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );  //find and save contours
+ 
+ //apply approximations to polygon with accuracy and find bounding rect for every polygon
+ //find min. enclosing circle for every polygon
  std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
  std::vector<cv::Rect> boundRect( contours.size() );
  std::vector<cv::Point2f>centers( contours.size() );
  std::vector<float>radius( contours.size() );
+ int accuracy = 3;
  for( size_t i = 0; i < contours.size(); i++ )
  {
-    cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
+    cv::approxPolyDP( contours[i], contours_poly[i], accuracy, true );
     boundRect[i] = cv::boundingRect( contours_poly[i] );
     minEnclosingCircle( contours_poly[i], centers[i], radius[i] );
  }
+
  drawing = cv::Mat::zeros( canny_output.size(), CV_8UC3 );
  for( size_t i = 0; i< contours.size(); i++ )
  {
     cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
     cv::drawContours( imgApple, contours_poly, (int)i, color );
-    cv::rectangle( imgApple, boundRect[i].tl(), boundRect[i].br(), color, 1 );
+    cv::Rect box = cv::rectangle( imgApple, boundRect[i].tl(), boundRect[i].br(), color, 1 );
     cv::circle( imgApple, centers[i], (int)radius[i], color, 2 );
  }
- cv::imshow( "Contours", imgApple );
+ //cv::imshow( "Contours", imgApple );
+    // std::cout << "height: " << box.hieght << std::endl;
+    // std::cout << "width: " << box.width << std::endl;
+
 }
 
 
@@ -105,7 +117,7 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
 
     cv::Scalar backLeftLowRange(20, 0, 20);
     cv::Scalar backLeftHighRange(25, 100, 255);
-    cv::Scalar backRightLowRange(50, 0, 20);
+    cv::Scalar backRightLowRange(80, 0, 20);
     cv::Scalar backRightHighRange(150, 255, 255);
 
     cv::Mat imgBack;
