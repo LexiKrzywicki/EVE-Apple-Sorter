@@ -37,8 +37,8 @@ int main( int argc, char** argv )
 
 
 //THIS IS FOR BOUNDING BOX
-    // cvtColor(imgApple, appleHSV, cv::COLOR_BGR2GRAY );
-    // blur( appleHSV, appleHSV, cv::Size(3,3) );
+    //cvtColor(imgApple, appleHSV, cv::COLOR_BGR2GRAY );
+    //blur( appleHSV, appleHSV, cv::Size(3,3) );
 
     // //thresh 75 for image1
     // const char* source_window = "Source";
@@ -46,7 +46,7 @@ int main( int argc, char** argv )
     // cv::imshow( source_window, imgApple );
     // const int max_thresh = 255;
     // cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, thresh_callback );
-    // thresh_callback(0, 0);
+    //thresh_callback(0, 0);
 
 
 //THIS IS FOR RED COLOR PERCENT!!!
@@ -54,8 +54,8 @@ int main( int argc, char** argv )
     apple = removeBackground(appleHSV, imgApple, apple);
     // std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;
 
-    //apple = getRed(appleHSV, imgApple, apple);
-    // std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
+    apple = getRed(appleHSV, imgApple, apple);
+    std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
 
     // double percentage = getColorPercent(apple);
     // std::cout << "percent of red present = " << percentage << std::endl;
@@ -96,21 +96,29 @@ void thresh_callback(int, void* )
     cv::rectangle( imgApple, boundRect[i].tl(), boundRect[i].br(), color, 1 );
     cv::circle( imgApple, centers[i], (int)radius[i], color, 2 );
  }
- cv::imshow( "Contours", imgApple );
+ //cv::imshow( "Contours", imgApple );
 }
 
 
 
 appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
 
+    //to remove blue background
     cv::Scalar backLeftLowRange(20, 0, 20);
     cv::Scalar backLeftHighRange(25, 100, 255);
-    cv::Scalar backRightLowRange(50, 0, 20);
-    cv::Scalar backRightHighRange(150, 255, 255);
+    cv::Scalar backRightLowRange(80, 0, 20);
+    cv::Scalar backRightHighRange(160, 255, 255);
+    // cv::inRange(desiredImage, backLeftLowRange, backLeftHighRange, imgBack);
+    // cv::inRange(desiredImage, backRightLowRange, backRightHighRange, imgBack);
+
+    //grey background
+    // cv::Scalar backLeftLowRange(0, 0, 0);
+    // cv::Scalar backLeftHighRange(0, 80, 255);
+    // //cv::Scalar backRightLowRange(80, 200, 20);
+    // //cv::Scalar backRightHighRange(160, 255, 255);
 
     cv::Mat imgBack;
     cv::inRange(desiredImage, backLeftLowRange, backLeftHighRange, imgBack);
-    //inRange(desiredImage, backCenterLowRange, backCenterHighRange, imgBack);
     cv::inRange(desiredImage, backRightLowRange, backRightHighRange, imgBack);
 
     //imgBack is image with black representing apple
@@ -127,6 +135,8 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
     cv::Mat notMask;
     cv::bitwise_not(imgBack, notMask);
     cv::bitwise_and(OriginalImage, OriginalImage, finalApple, notMask);
+
+
     //final image is colored apple & black background
     A.image = finalApple;
     return (A);
@@ -136,8 +146,7 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
 appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
     //HSV values
     cv::Scalar redLeftLowRange(0, 100, 20);
-    //cv::Scalar redLeftHighRange(25, 255, 255);
-    cv::Scalar redLeftHighRange(60, 255, 255);
+    cv::Scalar redLeftHighRange(25, 255, 255);
     cv::Scalar redRightLowRange(160, 100, 20);
     cv::Scalar redRightHighRange(179, 255, 255);
 
@@ -157,6 +166,8 @@ appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
 
     //perform bitwise on mask
     cv::bitwise_and(OriginalImage, OriginalImage, finalApple, imgThres);
+
+
     A.image = finalApple;
 
     return (A);
