@@ -13,18 +13,17 @@ cv::Mat imgApple;
 class appleInfo{
     public:
 
-    cv::Mat image;
+    cv::Mat origImage;
+    cv::Mat image;  //without background
     cv::Mat middle;
     double totalPixels;
     double redPixels;
-    int diameter;
-
-    
+    int radius;
 };
 
 void getAppleSize(int, appleInfo A, void* );
-appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A);
-appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A);
+appleInfo removeBackground(cv::Mat desiredImage, appleInfo A);
+appleInfo getRed(cv::Mat desiredImage, appleInfo A);
 double getColorPercent(appleInfo A);
 cv::Mat getMiddleApple(appleInfo A);
 
@@ -33,21 +32,21 @@ int main( int argc, char** argv )
 {
     appleInfo apple;
     //get image
-    imgApple = cv::imread(argv[1], cv::IMREAD_COLOR);
+    apple.origImage = cv::imread(argv[1], cv::IMREAD_COLOR);
     
 
     //convert to HSV
-    cvtColor(imgApple, appleHSV, cv::COLOR_BGR2HSV);
+    cvtColor(apple.origImage, appleHSV, cv::COLOR_BGR2HSV);
 
 
 //THIS IS FOR RED COLOR PERCENT!!!
 
-    apple = removeBackground(appleHSV, imgApple, apple);
+    apple = removeBackground(appleHSV, apple);
     //std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;  //used for testing
 
-    apple.middle = getMiddleApple(apple);
+    //apple.middle = getMiddleApple(apple);
 
-    apple = getRed(appleHSV, imgApple, apple);
+    apple = getRed(appleHSV, apple);
     //std::cout << "Main: redPixels = " << apple.redPixels << std::endl;  //used for testing
 
     double percentage = getColorPercent(apple);
@@ -57,25 +56,25 @@ int main( int argc, char** argv )
 //THIS IS FOR BOUNDING BOX
     //convert image to grayscale and blue to reduce noise
     cv::Mat appleGray;
-    cvtColor(apple.middle, appleGray, cv::COLOR_BGR2GRAY );
+    cvtColor(apple.origImage, appleGray, cv::COLOR_BGR2GRAY );
     blur( appleGray, appleGray, cv::Size(3,3) );
 
     //below code if to easily change thresh and see result
     //const char* source_window = "Source";
     //cv::namedWindow( source_window );
     //cv::imshow( source_window, apple.middle );
-    //const int max_thresh = 255;
+    //const intdiameter max_thresh = 255;
     //cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, getAppleSize );
     
     getAppleSize(0, apple, 0);
 
 
 
-    cv::imshow("Original", imgApple);
+    cv::imshow("Original", apple.origImage);
     //cv::imshow("Threshold Image", imgBack);
     cv::imshow("Final", apple.image);
 
-    cv::imshow("Middle Apple", apple.middle);
+    //cv::imshow("Middle Apple", apple.middle);
 
 
     cv::waitKey(0);
@@ -87,9 +86,11 @@ int main( int argc, char** argv )
 void getAppleSize(int, appleInfo A, void* )
 {
 
+    //the following a.middle is changed to A.image for test originally a.middle
+
  cv::Mat canny_output;
 
- Canny(A.middle, canny_output, thresh, thresh*2 );  // used to detect edges
+ Canny(A.origImage, canny_output, thresh, thresh*2 );  // used to detect edges
  
  std::vector<std::vector<cv::Point> > contours;
  findContours( canny_output, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );  //find and save contours
@@ -112,14 +113,16 @@ void getAppleSize(int, appleInfo A, void* )
  for( size_t i = 0; i< contours.size(); i++ )
  {
     cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
-    cv::drawContours( A.middle, contours_poly, (int)i, color );
-    cv::rectangle( A.middle, boundRect[i].tl(), boundRect[i].br(), color, 1 );
-    cv::circle( A.middle, centers[i], (int)radius[i], color, 2 );
+    cv::drawContours( A.origImage, contours_poly, (int)i, color );
+    cv::rectangle( A.origImage, boundRect[i].tl(), boundRect[i].br(), color, 1 );
+    cv::circle( A.origImage, centers[i], (int)radius[i], color, 2 );
  }
 
-    A.diameter = (int)radius[0];
+ 
 
-    std::cout << "radius of apple: " << (int)radius[0] << " pixels" << std::endl; //get radius of apple in pixels       
+    //A.radius = (int)radius[0];
+
+    //std::cout << "radius of apple: " << A.radius << " pixels" << std::endl; //get radius of apple in pixels       
 
     //bounding box points
     //std::cout << "top left apple: " << boundRect[0].tl() << std::endl;
@@ -131,7 +134,7 @@ void getAppleSize(int, appleInfo A, void* )
 }
 
 
-appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
+appleInfo removeBackground(cv::Mat desiredImage, appleInfo A){
 
     cv::Scalar backLeftLowRange(20, 0, 20);
     cv::Scalar backLeftHighRange(25, 100, 255);
@@ -146,7 +149,7 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
     //imgBack is image with black representing apple
 
     //to get the size of the apple. cannot do this with finalApple becuas finalApple does not have numerica color values for countNonZero to work.
-    //bitwising with OriginalImage produces nonHSV image
+    //bitwising with Original Image produces nonHSV image
     int totalImagePixels = imgBack.cols * imgBack.rows;
     A.totalPixels = totalImagePixels - cv::countNonZero(imgBack); 
     //std::cout << "size of apple: " << A.totalPixels << std::endl;
@@ -156,14 +159,14 @@ appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInf
     cv::Mat finalApple;
     cv::Mat notMask;
     cv::bitwise_not(imgBack, notMask);
-    cv::bitwise_and(OriginalImage, OriginalImage, finalApple, notMask);
+    cv::bitwise_and(A.origImage, A.origImage, finalApple, notMask);
     //final image is colored apple & black background
     A.image = finalApple;
     return (A);
 
 }
 
-appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
+appleInfo getRed(cv::Mat desiredImage, appleInfo A){
     //HSV values
     cv::Scalar redLeftLowRange(0, 10, 20);
     //cv::Scalar redLeftHighRange(25, 255, 255);
@@ -186,7 +189,7 @@ appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
     mask = leftThres | rightThres;
 
     
-    cv::bitwise_or(OriginalImage, OriginalImage, finalApple, mask);
+    cv::bitwise_or(A.origImage, A.origImage, finalApple, mask);
 
     A.redPixels = cv::countNonZero(mask);
     //std::cout << "redPixels: " << A.redPixels << std::endl;
