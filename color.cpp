@@ -4,7 +4,7 @@
 #include "opencv2/imgcodecs.hpp"
 #include <iostream>
 
-int thresh = 75;
+int thresh = 100;  //originally 75
 cv::RNG rng(12345);
 cv::Mat appleHSV;
 cv::Mat drawing;
@@ -17,10 +17,12 @@ class appleInfo{
     cv::Mat middle;
     double totalPixels;
     double redPixels;
+    int diameter;
+
     
 };
 
-void thresh_callback(int, appleInfo A, void* );
+void getAppleSize(int, appleInfo A, void* );
 appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A);
 appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A);
 double getColorPercent(appleInfo A);
@@ -41,15 +43,15 @@ int main( int argc, char** argv )
 //THIS IS FOR RED COLOR PERCENT!!!
 
     apple = removeBackground(appleHSV, imgApple, apple);
-    std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;
+    //std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;  //used for testing
 
     apple.middle = getMiddleApple(apple);
 
     apple = getRed(appleHSV, imgApple, apple);
-    std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
+    //std::cout << "Main: redPixels = " << apple.redPixels << std::endl;  //used for testing
 
     double percentage = getColorPercent(apple);
-    std::cout << "percent of red present = " << percentage << std::endl;
+    std::cout << "red percentage = " << percentage << "%" << std::endl;
 
 
 //THIS IS FOR BOUNDING BOX
@@ -59,13 +61,13 @@ int main( int argc, char** argv )
     blur( appleGray, appleGray, cv::Size(3,3) );
 
     //below code if to easily change thresh and see result
-    // const char* source_window = "Source";
-    // cv::namedWindow( source_window );
-    // cv::imshow( source_window, imgApple );
-    // const int max_thresh = 255;
-    // cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, thresh_callback );
+    //const char* source_window = "Source";
+    //cv::namedWindow( source_window );
+    //cv::imshow( source_window, apple.middle );
+    //const int max_thresh = 255;
+    //cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, getAppleSize );
     
-    thresh_callback(0, apple, 0);
+    getAppleSize(0, apple, 0);
 
 
 
@@ -82,7 +84,7 @@ int main( int argc, char** argv )
 }
 
 
-void thresh_callback(int, appleInfo A, void* )
+void getAppleSize(int, appleInfo A, void* )
 {
 
  cv::Mat canny_output;
@@ -110,16 +112,23 @@ void thresh_callback(int, appleInfo A, void* )
  for( size_t i = 0; i< contours.size(); i++ )
  {
     cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
-    cv::drawContours( imgApple, contours_poly, (int)i, color );
-    cv::rectangle( imgApple, boundRect[i].tl(), boundRect[i].br(), color, 1 );
-    cv::circle( imgApple, centers[i], (int)radius[i], color, 2 );
+    cv::drawContours( A.middle, contours_poly, (int)i, color );
+    cv::rectangle( A.middle, boundRect[i].tl(), boundRect[i].br(), color, 1 );
+    cv::circle( A.middle, centers[i], (int)radius[i], color, 2 );
  }
- //cv::imshow( "Contours", imgApple );
-    // std::cout << "height: " << box.hieght << std::endl;
-    // std::cout << "width: " << box.width << std::endl;
+
+    A.diameter = (int)radius[0];
+
+    std::cout << "radius of apple: " << (int)radius[0] << " pixels" << std::endl; //get radius of apple in pixels       
+
+    //bounding box points
+    //std::cout << "top left apple: " << boundRect[0].tl() << std::endl;
+    //std::cout << "bottom right apple: " << boundRect[0].br() << std::endl;
+    
+    //cv::imshow( "Contours", imgApple );
+
 
 }
-
 
 
 appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A){
