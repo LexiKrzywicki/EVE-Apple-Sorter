@@ -14,15 +14,17 @@ class appleInfo{
     public:
 
     cv::Mat image;
+    cv::Mat middle;
     double totalPixels;
     double redPixels;
     
 };
 
-void thresh_callback(int, void* );
+void thresh_callback(int, appleInfo A, void* );
 appleInfo removeBackground(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A);
 appleInfo getRed(cv::Mat desiredImage, cv::Mat OriginalImage, appleInfo A);
 double getColorPercent(appleInfo A);
+cv::Mat getMiddleApple(appleInfo A);
 
 
 int main( int argc, char** argv )
@@ -36,10 +38,25 @@ int main( int argc, char** argv )
     cvtColor(imgApple, appleHSV, cv::COLOR_BGR2HSV);
 
 
+//THIS IS FOR RED COLOR PERCENT!!!
+
+    apple = removeBackground(appleHSV, imgApple, apple);
+    std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;
+
+    apple.middle = getMiddleApple(apple);
+
+    apple = getRed(appleHSV, imgApple, apple);
+    std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
+
+    double percentage = getColorPercent(apple);
+    std::cout << "percent of red present = " << percentage << std::endl;
+
+
 //THIS IS FOR BOUNDING BOX
     //convert image to grayscale and blue to reduce noise
-    //cvtColor(imgApple, appleHSV, cv::COLOR_BGR2GRAY );
-    //blur( appleHSV, appleHSV, cv::Size(3,3) );
+    cv::Mat appleGray;
+    cvtColor(apple.middle, appleGray, cv::COLOR_BGR2GRAY );
+    blur( appleGray, appleGray, cv::Size(3,3) );
 
     //below code if to easily change thresh and see result
     // const char* source_window = "Source";
@@ -48,23 +65,15 @@ int main( int argc, char** argv )
     // const int max_thresh = 255;
     // cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, thresh_callback );
     
-    //thresh_callback(0, 0);
+    thresh_callback(0, apple, 0);
 
 
-//THIS IS FOR RED COLOR PERCENT!!!
-
-    apple = removeBackground(appleHSV, imgApple, apple);
-    std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;
-
-    apple = getRed(appleHSV, imgApple, apple);
-    std::cout << "Main: redPixels = " << apple.redPixels << std::endl;
-
-    double percentage = getColorPercent(apple);
-    std::cout << "percent of red present = " << percentage << std::endl;
 
     cv::imshow("Original", imgApple);
     //cv::imshow("Threshold Image", imgBack);
     cv::imshow("Final", apple.image);
+
+    cv::imshow("Middle Apple", apple.middle);
 
 
     cv::waitKey(0);
@@ -73,12 +82,12 @@ int main( int argc, char** argv )
 }
 
 
-void thresh_callback(int, void* )
+void thresh_callback(int, appleInfo A, void* )
 {
 
  cv::Mat canny_output;
 
- Canny( appleHSV, canny_output, thresh, thresh*2 );  // used to detect edges
+ Canny(A.middle, canny_output, thresh, thresh*2 );  // used to detect edges
  
  std::vector<std::vector<cv::Point> > contours;
  findContours( canny_output, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );  //find and save contours
@@ -183,4 +192,11 @@ double getColorPercent(appleInfo A){
     double percent = (A.redPixels / A.totalPixels) *100.00;
     //std::cout << "percent red: " << percent << std::endl;
     return percent;
+}
+
+
+cv::Mat getMiddleApple(appleInfo A){
+    cv:: Mat middleApple;
+    middleApple = A.image(cv::Rect(200, 25, 265, 275));
+    return middleApple;
 }
