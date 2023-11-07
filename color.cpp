@@ -18,14 +18,13 @@ class appleInfo{
     cv::Mat middle;
     double totalPixels;
     double redPixels;
-    int radius;
+    int diameter;
 };
 
 void getAppleSize(int, appleInfo A, void* );
 appleInfo removeBackground(cv::Mat desiredImage, appleInfo A);
 appleInfo getRed(cv::Mat desiredImage, appleInfo A);
 double getColorPercent(appleInfo A);
-cv::Mat getMiddleApple(appleInfo A);
 
 
 int main( int argc, char** argv )
@@ -60,11 +59,11 @@ int main( int argc, char** argv )
     blur( appleGray, appleGray, cv::Size(3,3) );
 
     //below code if to easily change thresh and see result
-    //const char* source_window = "Source";
-    //cv::namedWindow( source_window );
-    //cv::imshow( source_window, apple.middle );
-    //const intdiameter max_thresh = 255;
-    //cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, getAppleSize );
+        //const char* source_window = "Source";
+        //cv::namedWindow( source_window );
+        //cv::imshow( source_window, apple.middle );
+        //const intdiameter max_thresh = 255;
+        //cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, getAppleSize );
     
     getAppleSize(0, apple, 0);
 
@@ -110,29 +109,38 @@ void getAppleSize(int, appleInfo A, void* )
  }
 
  drawing = cv::Mat::zeros( canny_output.size(), CV_8UC3 );
+ int prevRadius = 0;
+ int element = 0;
  for( size_t i = 0; i< contours.size(); i++ )
  {
     cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
     cv::drawContours( A.origImage, contours_poly, (int)i, color );
     cv::rectangle( A.origImage, boundRect[i].tl(), boundRect[i].br(), color, 1 );
     cv::circle( A.origImage, centers[i], (int)radius[i], color, 2 );
+
+    if((int)radius[i] > prevRadius){
+        //A.diameter = (int)radius[i];  //this gets radius which might be bigger then apple
+        prevRadius = radius[i];
+        element = i;
+    }
  }
 
- 
+ int x1 = boundRect[element].tl().x;
+ int x2 = boundRect[element].br().x;
 
-    //A.radius = (int)radius[0];
+A.diameter = x2 - x1;
 
-    //std::cout << "radius of apple: " << A.radius << " pixels" << std::endl; //get radius of apple in pixels       
 
-    //bounding box points
-    //std::cout << "top left apple: " << boundRect[0].tl() << std::endl;
-    //std::cout << "bottom right apple: " << boundRect[0].br() << std::endl;
+//  std::cout<< "boundRect: " << x1 << std::endl;
+//  std::cout<< "boundRect: " << x2 << std::endl;
+ //std::cout<< "radius: " << radius[element] << std::endl;
+
+ std::cout << "diameter: " << A.diameter << " pixels" << std::endl;
     
     //cv::imshow( "Contours", imgApple );
 
 
 }
-
 
 appleInfo removeBackground(cv::Mat desiredImage, appleInfo A){
 
@@ -204,11 +212,4 @@ double getColorPercent(appleInfo A){
     double percent = (A.redPixels / A.totalPixels) *100.00;
     //std::cout << "percent red: " << percent << std::endl;
     return percent;
-}
-
-
-cv::Mat getMiddleApple(appleInfo A){
-    cv:: Mat middleApple;
-    middleApple = A.image(cv::Rect(200, 25, 265, 275));
-    return middleApple;
 }
