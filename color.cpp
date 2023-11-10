@@ -14,14 +14,16 @@ class appleInfo{
     public:
 
     cv::Mat origImage;
-    cv::Mat image;  //without background
-    cv::Mat middle;
+    cv::Mat noBackImage;  //without background
+    cv::Mat redImage;  //red only parts of the apple
+    //cv::Mat middle;  
+    cv::Mat greyImage;  //grey image used for color thresholding
     double totalPixels;
     double redPixels;
     int diameter;
 };
 
-void getAppleSize(int, appleInfo A, void* );
+void getAppleSize(int, appleInfo A, void* );   //originally threshold
 appleInfo removeBackground(cv::Mat desiredImage, appleInfo A);
 appleInfo getRed(cv::Mat desiredImage, appleInfo A);
 double getColorPercent(appleInfo A);
@@ -54,9 +56,9 @@ int main( int argc, char** argv )
 
 //THIS IS FOR BOUNDING BOX
     //convert image to grayscale and blue to reduce noise
-    cv::Mat appleGray;
-    cvtColor(apple.origImage, appleGray, cv::COLOR_BGR2GRAY );
-    blur( appleGray, appleGray, cv::Size(3,3) );
+    //cv::Mat appleGray;
+    cvtColor(apple.noBackImage, apple.greyImage, cv::COLOR_BGR2GRAY );
+    blur(apple.greyImage, apple.greyImage, cv::Size(3,3) );
 
     //below code if to easily change thresh and see result
         //const char* source_window = "Source";
@@ -70,10 +72,9 @@ int main( int argc, char** argv )
 
 
     cv::imshow("Original", apple.origImage);
-    //cv::imshow("Threshold Image", imgBack);
-    cv::imshow("Final", apple.image);
-
-    //cv::imshow("Middle Apple", apple.middle);
+    cv::imshow("No Background", apple.noBackImage);
+    cv::imshow("Red", apple.redImage);
+    cv::imshow("Gray Image", apple.greyImage);
 
 
     cv::waitKey(0);
@@ -89,7 +90,7 @@ void getAppleSize(int, appleInfo A, void* )
 
  cv::Mat canny_output;
 
- Canny(A.origImage, canny_output, thresh, thresh*2 );  // used to detect edges
+ Canny(A.greyImage, canny_output, thresh, thresh*2 );  // used to detect edges
  
  std::vector<std::vector<cv::Point> > contours;
  findContours( canny_output, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );  //find and save contours
@@ -114,9 +115,9 @@ void getAppleSize(int, appleInfo A, void* )
  for( size_t i = 0; i< contours.size(); i++ )
  {
     cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
-    cv::drawContours( A.origImage, contours_poly, (int)i, color );
-    cv::rectangle( A.origImage, boundRect[i].tl(), boundRect[i].br(), color, 1 );
-    cv::circle( A.origImage, centers[i], (int)radius[i], color, 2 );
+    cv::drawContours( A.greyImage, contours_poly, (int)i, color );
+    cv::rectangle( A.greyImage, boundRect[i].tl(), boundRect[i].br(), color, 1 );
+    cv::circle( A.greyImage, centers[i], (int)radius[i], color, 2 );
 
     if((int)radius[i] > prevRadius){
         //A.diameter = (int)radius[i];  //this gets radius which might be bigger then apple
@@ -144,9 +145,14 @@ A.diameter = x2 - x1;
 
 appleInfo removeBackground(cv::Mat desiredImage, appleInfo A){
 
-    cv::Scalar backLeftLowRange(20, 0, 20);
-    cv::Scalar backLeftHighRange(25, 100, 255);
-    cv::Scalar backRightLowRange(80, 0, 20);
+    // cv::Scalar backLeftLowRange(20, 0, 20);
+    // cv::Scalar backLeftHighRange(25, 100, 255);
+    // cv::Scalar backRightLowRange(80, 0, 20);
+    // cv::Scalar backRightHighRange(150, 255, 255);
+
+    cv::Scalar backLeftLowRange(20, 0, 0);
+    cv::Scalar backLeftHighRange(25, 255, 25);
+    cv::Scalar backRightLowRange(80, 0, 0);
     cv::Scalar backRightHighRange(150, 255, 255);
 
     cv::Mat imgBack;
@@ -169,7 +175,7 @@ appleInfo removeBackground(cv::Mat desiredImage, appleInfo A){
     cv::bitwise_not(imgBack, notMask);
     cv::bitwise_and(A.origImage, A.origImage, finalApple, notMask);
     //final image is colored apple & black background
-    A.image = finalApple;
+    A.noBackImage = finalApple;
     return (A);
 
 }
@@ -202,7 +208,7 @@ appleInfo getRed(cv::Mat desiredImage, appleInfo A){
     A.redPixels = cv::countNonZero(mask);
     //std::cout << "redPixels: " << A.redPixels << std::endl;
     //std::cout << "totalPixels: " << A.totalPixels << std::endl;
-    A.image = finalApple;
+    A.redImage = finalApple;
 
     return (A);
 }
