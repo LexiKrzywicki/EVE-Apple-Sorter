@@ -17,8 +17,7 @@ class appleInfo{
         cv::Mat HSV;
         cv::Mat noBackImage;  //without background
         cv::Mat redImage;  //red only parts of the apple
-        //cv::Mat middle;  
-        cv::Mat greyImage;  //grey image used for color thresholding
+        
         double totalPixels;
         double redPixels;
         double percentRed;
@@ -46,13 +45,11 @@ class appleInfo{
     }
 
     cv::Mat getRed(){
-        //HSV values
-
 
         cv::Mat thres;
         cv::Mat noBackHSV;
         cv::Mat finalRed;
-        cv::Mat finalRedBGR;
+        cv::Mat finalRedBGR;  
 
         cvtColor(noBackImage, noBackHSV, cv::COLOR_BGR2HSV);
 
@@ -63,18 +60,20 @@ class appleInfo{
         //create mask
         cv::inRange(noBackHSV, redLeftLowRange, redLeftHighRange, thres);
 
-        
         cv::bitwise_and(noBackHSV, noBackHSV, finalRed, thres);
 
         //counts all non black pixels - should be only red pixels
         redPixels = cv::countNonZero(thres);
 
+        //coverts image to BGR color for showing
         cvtColor(finalRed, finalRedBGR, cv::COLOR_HSV2BGR);
+
         redImage = finalRedBGR;
 
         return finalRedBGR;
     }
-
+    
+    //calculates percent red
     double getColorPercent(){
 
         percentRed = (redPixels / totalPixels) *100.00;
@@ -82,6 +81,7 @@ class appleInfo{
         return percentRed;
     }
 
+    //determines apple grade from percent red
     std::string grade(){
 
         std::string strGrade;
@@ -107,22 +107,17 @@ int main( int argc, char** argv )
 {
     appleInfo apple;
 
-    //get image
+    //get image from commandline
     apple.origImage = cv::imread(argv[1], cv::IMREAD_COLOR);
 
     //crops image
     apple.origImage = apple.origImage(cv::Range(70,400), cv::Range(40, 610));
 
-    
-
     //convert to HSV
     cvtColor(apple.origImage, apple.HSV, cv::COLOR_BGR2HSV);
 
 
-//THIS IS FOR RED COLOR PERCENT!!!
-
     apple.noBackImage = apple.removeBackground();
-
 
     apple.redImage = apple.getRed();
 
@@ -131,13 +126,10 @@ int main( int argc, char** argv )
 
     std::cout << "GRADE: " << apple.grade() << std::endl;
 
+    //shows images
     cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
     cv::imshow("Red", apple.redImage);
-
-
-
-
 
     cv::waitKey(0);
     
