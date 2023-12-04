@@ -13,19 +13,21 @@ cv::Mat imgApple;
 class appleInfo{
     public:
 
-    cv::Mat origImage;
-    cv::Mat noBackImage;  //without background
-    cv::Mat redImage;  //red only parts of the apple
-    //cv::Mat middle;  
-    cv::Mat greyImage;  //grey image used for color thresholding
-    double totalPixels;
-    double redPixels;
-    int diameter;
+        cv::Mat origImage;
+        cv::Mat noBackImage;  //without background
+        cv::Mat redImage;  //red only parts of the apple
+        //cv::Mat middle;  
+        cv::Mat greyImage;  //grey image used for color thresholding
+        double totalPixels;
+        double redPixels;
+        int diameter;
+
+
 };
 
 void getAppleSize(int, appleInfo A, void* );   //originally threshold
-appleInfo removeBackground(cv::Mat desiredImage, appleInfo A);
-appleInfo getRed(cv::Mat desiredImage, appleInfo A);
+cv::Mat removeBackground(cv::Mat desiredImage, appleInfo A);
+cv::Mat getRed(appleInfo A);
 double getColorPercent(appleInfo A);
 
 
@@ -34,6 +36,9 @@ int main( int argc, char** argv )
     appleInfo apple;
     //get image
     apple.origImage = cv::imread(argv[1], cv::IMREAD_COLOR);
+
+    apple.origImage = apple.origImage(cv::Range(70,400), cv::Range(40, 610));
+
     
 
     //convert to HSV
@@ -42,13 +47,10 @@ int main( int argc, char** argv )
 
 //THIS IS FOR RED COLOR PERCENT!!!
 
-    apple = removeBackground(appleHSV, apple);
-    //std::cout << "Main: totalPixels = " << apple.totalPixels << std::endl;  //used for testing
+    apple.noBackImage = removeBackground(appleHSV, apple);
 
-    //apple.middle = getMiddleApple(apple);
 
-    apple = getRed(appleHSV, apple);
-    //std::cout << "Main: redPixels = " << apple.redPixels << std::endl;  //used for testing
+    apple.redImage = getRed(apple);
 
     double percentage = getColorPercent(apple);
     std::cout << "red percentage = " << percentage << "%" << std::endl;
@@ -57,8 +59,8 @@ int main( int argc, char** argv )
 //THIS IS FOR BOUNDING BOX
     //convert image to grayscale and blue to reduce noise
     //cv::Mat appleGray;
-    cvtColor(apple.noBackImage, apple.greyImage, cv::COLOR_BGR2GRAY );
-    blur(apple.greyImage, apple.greyImage, cv::Size(3,3) );
+    //cvtColor(apple.noBackImage, apple.greyImage, cv::COLOR_BGR2GRAY );
+    //blur(apple.greyImage, apple.greyImage, cv::Size(3,3) );
 
     //below code if to easily change thresh and see result
         //const char* source_window = "Source";
@@ -67,14 +69,14 @@ int main( int argc, char** argv )
         //const intdiameter max_thresh = 255;
         //cv::createTrackbar( "Canny thresh:", source_window, &thresh, max_thresh, getAppleSize );
     
-    getAppleSize(0, apple, 0);
+    //getAppleSize(0, apple, 0);
 
 
 
     cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
     cv::imshow("Red", apple.redImage);
-    cv::imshow("Gray Image", apple.greyImage);
+    //cv::imshow("Gray Image", apple.greyImage);
 
 
     cv::waitKey(0);
@@ -143,74 +145,59 @@ A.diameter = x2 - x1;
 
 }
 
-appleInfo removeBackground(cv::Mat desiredImage, appleInfo A){
-
-    // cv::Scalar backLeftLowRange(20, 0, 20);
-    // cv::Scalar backLeftHighRange(25, 100, 255);
-    // cv::Scalar backRightLowRange(80, 0, 20);
-    // cv::Scalar backRightHighRange(150, 255, 255);
-
-    cv::Scalar backLeftLowRange(20, 0, 0);
-    cv::Scalar backLeftHighRange(25, 255, 25);
-    cv::Scalar backRightLowRange(80, 0, 0);
-    cv::Scalar backRightHighRange(150, 255, 255);
+cv::Mat removeBackground(cv::Mat desiredImage, appleInfo A){
 
     cv::Mat imgBack;
-    cv::inRange(desiredImage, backLeftLowRange, backLeftHighRange, imgBack);
-    //inRange(desiredImage, backCenterLowRange, backCenterHighRange, imgBack);
-    cv::inRange(desiredImage, backRightLowRange, backRightHighRange, imgBack);
+
+    cv::Scalar backLow(0,150,100);
+    cv::Scalar backHigh(35,255,255);
+
+    cv::inRange(desiredImage, backLow, backHigh, imgBack);
 
     //imgBack is image with black representing apple
 
     //to get the size of the apple. cannot do this with finalApple becuas finalApple does not have numerica color values for countNonZero to work.
     //bitwising with Original Image produces nonHSV image
-    int totalImagePixels = imgBack.cols * imgBack.rows;
+    double totalImagePixels = imgBack.cols * imgBack.rows;
     A.totalPixels = totalImagePixels - cv::countNonZero(imgBack); 
-    //std::cout << "size of apple: " << A.totalPixels << std::endl;
+    std::cout << "size of apple: " << A.totalPixels << std::endl;
 
 
     //perform bitwise on mask
     cv::Mat finalApple;
     cv::Mat notMask;
-    cv::bitwise_not(imgBack, notMask);
-    cv::bitwise_and(A.origImage, A.origImage, finalApple, notMask);
+    //cv::bitwise_not(imgBack, desiredImage);
+    cv::bitwise_and(A.origImage, A.origImage, finalApple, imgBack);
     //final image is colored apple & black background
-    A.noBackImage = finalApple;
-    return (A);
+    return finalApple;
 
 }
 
-appleInfo getRed(cv::Mat desiredImage, appleInfo A){
+cv::Mat getRed(appleInfo A){
     //HSV values
-    cv::Scalar redLeftLowRange(0, 10, 20);
-    //cv::Scalar redLeftHighRange(25, 255, 255);
-    cv::Scalar redLeftHighRange(18, 255, 255);
-    cv::Scalar redRightLowRange(160, 10, 20);
-    cv::Scalar redRightHighRange(179, 255, 255);
+
 
     cv::Mat leftThres;
-    cv::Mat rightThres;
+    cv::Mat noBackThres;
     cv::Mat finalApple;
-    cv::Mat mask1;
-    cv::Mat mask2;
-    cv::Mat mask;
+    cvtColor(A.noBackImage, noBackThres, cv::COLOR_BGR2HSV);
+
+
+    cv::Scalar redLeftLowRange(0,150,100);
+    cv::Scalar redLeftHighRange(15,255,255);
 
     //create mask
-    cv::inRange(desiredImage, redLeftLowRange, redLeftHighRange, leftThres);
-    cv::inRange(desiredImage, redRightLowRange, redRightHighRange, rightThres);
-
-    //combine lower range of HSV wiht higher range to get the mask for the apple
-    mask = leftThres | rightThres;
+    cv::inRange(noBackThres, redLeftLowRange, redLeftHighRange, leftThres);
 
     
-    cv::bitwise_or(A.origImage, A.origImage, finalApple, mask);
+    cv::bitwise_or(noBackThres, noBackThres, finalApple, leftThres);
 
-    A.redPixels = cv::countNonZero(mask);
-    //std::cout << "redPixels: " << A.redPixels << std::endl;
-    //std::cout << "totalPixels: " << A.totalPixels << std::endl;
+    A.redPixels = cv::countNonZero(leftThres);
+    std::cout << "redPixels: " << A.redPixels << std::endl;
+    std::cout << "totalPixels: " << A.totalPixels << std::endl;
     A.redImage = finalApple;
 
-    return (A);
+    return finalApple;
 }
 
 double getColorPercent(appleInfo A){
