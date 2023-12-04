@@ -17,7 +17,8 @@ class appleInfo{
         cv::Mat HSV;
         cv::Mat noBackImage;  //without background
         cv::Mat redImage;  //red only parts of the apple
-        
+        cv::Mat appleShape;
+
         double totalPixels;
         double redPixels;
         double percentRed;
@@ -81,6 +82,25 @@ class appleInfo{
         return percentRed;
     }
 
+    cv::Mat getShape(){
+
+        cv::Mat noBackGray;
+        cv::Mat noBackColor;
+        cv::Mat binaryThresh;
+
+        //convert noBack image to gray
+        cvtColor(noBackImage, noBackColor, cv::COLOR_HSV2BGR);
+        cvtColor(noBackColor, noBackGray, cv::COLOR_BGR2GRAY);
+
+        cv::imshow("Gray", noBackGray);
+        cv::waitKey(0);
+
+        threshold(noBackGray, binaryThresh, 100, 255, cv::THRESH_BINARY);
+
+
+        return binaryThresh;
+    }
+
     //determines apple grade from percent red
     std::string grade(){
 
@@ -124,12 +144,15 @@ int main( int argc, char** argv )
     double percentage = apple.getColorPercent();
     std::cout << "red percentage = " << percentage << "%" << std::endl;
 
+    apple.appleShape = apple.getShape();
+
     std::cout << "GRADE: " << apple.grade() << std::endl;
 
     //shows images
     cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
     cv::imshow("Red", apple.redImage);
+    cv::imshow("Shape", apple.appleShape);
 
     cv::waitKey(0);
     
