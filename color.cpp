@@ -26,15 +26,16 @@ class appleInfo{
     cv::Mat removeBackground(){
 
         cv::Mat imgBack;
+        cv::Mat imgRight;
+        cv::Mat combine;
 
-        cv::Scalar backLow(0,150,100);
+        cv::Scalar backLow(0,150,50);
         cv::Scalar backHigh(35,255,255);
 
         cv::inRange(HSV, backLow, backHigh, imgBack);
 
         //calculates total number of pixels that are not black - should only be apple
         totalPixels = cv::countNonZero(imgBack); 
-
 
         //perform bitwise on mask
         cv::Mat finalApple;
@@ -53,7 +54,6 @@ class appleInfo{
         cv::Mat finalRedBGR;  
 
         cvtColor(noBackImage, noBackHSV, cv::COLOR_BGR2HSV);
-
 
         cv::Scalar redLeftLowRange(0,150,100);
         cv::Scalar redLeftHighRange(13,255,255);
@@ -88,17 +88,22 @@ class appleInfo{
         cv::Mat noBackColor;
         cv::Mat binaryThresh;
 
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+
         //convert noBack image to gray
-        cvtColor(noBackImage, noBackColor, cv::COLOR_HSV2BGR);
-        cvtColor(noBackColor, noBackGray, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(noBackImage, noBackColor, cv::COLOR_HSV2BGR);
+        cv::cvtColor(noBackColor, noBackGray, cv::COLOR_BGR2GRAY);
 
-        cv::imshow("Gray", noBackGray);
-        cv::waitKey(0);
+        cv::threshold(noBackGray, binaryThresh, 100, 255, cv::THRESH_BINARY);
 
-        threshold(noBackGray, binaryThresh, 100, 255, cv::THRESH_BINARY);
+        cv::findContours(binaryThresh, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
+        cv::Mat image_copy = noBackImage.clone();
 
-        return binaryThresh;
+        cv::drawContours(image_copy, contours, -1, cv::Scalar(0,255,0), 2);
+
+        return image_copy;
     }
 
     //determines apple grade from percent red
