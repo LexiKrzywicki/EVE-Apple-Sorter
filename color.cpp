@@ -135,9 +135,6 @@ int main( int argc, char** argv )
     //get image from commandline
     apple.origImage = cv::imread(argv[1], cv::IMREAD_COLOR);
 
-    //crops image
-    apple.origImage = apple.origImage(cv::Range(70,400), cv::Range(40, 610));
-
     //convert to HSV
     cvtColor(apple.origImage, apple.HSV, cv::COLOR_BGR2HSV);
 
