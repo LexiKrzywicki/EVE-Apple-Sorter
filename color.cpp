@@ -54,6 +54,7 @@ class appleInfo{
         cv::inRange(HSV, backLow, backHigh, maskLeft);
         cv::inRange(HSV, backBottom, backTop, maskRight);
 
+        //combine the upper and lower ranges
         fullMask = maskLeft + maskRight;
 
         //calculates total number of pixels that are not black - should only be apple
@@ -70,23 +71,31 @@ class appleInfo{
 
     cv::Mat getRed(){
 
-        cv::Mat thres;
+        cv::Mat thresLeft;
+        cv::Mat thresRight;
+        cv::Mat thresFull;
         cv::Mat noBackHSV;
         cv::Mat finalRed;
         cv::Mat finalRedBGR;  
 
         cvtColor(noBackImage, noBackHSV, cv::COLOR_BGR2HSV);
 
-        cv::Scalar redLeftLowRange(0,150,100);
-        cv::Scalar redLeftHighRange(13,255,255);
+        cv::Scalar redLeftLowRange(0,1,0);
+        cv::Scalar redLeftHighRange(25,255,255);
+
+        cv::Scalar redRightLowRange(155, 0, 0);
+        cv::Scalar redRightHighRange(179, 255, 255);
 
         //create mask
-        cv::inRange(noBackHSV, redLeftLowRange, redLeftHighRange, thres);
+        cv::inRange(noBackHSV, redLeftLowRange, redLeftHighRange, thresLeft);
+        cv::inRange(noBackHSV, redRightLowRange, redRightHighRange, thresRight);
 
-        cv::bitwise_and(noBackHSV, noBackHSV, finalRed, thres);
+        thresFull = thresLeft + thresRight;
+
+        cv::bitwise_and(noBackHSV, noBackHSV, finalRed, thresFull);
 
         //counts all non black pixels - should be only red pixels
-        redPixels = cv::countNonZero(thres);
+        redPixels = cv::countNonZero(thresFull);
 
         //coverts image to BGR color for showing
         cvtColor(finalRed, finalRedBGR, cv::COLOR_HSV2BGR);
@@ -102,6 +111,32 @@ class appleInfo{
         percentRed = (redPixels / totalPixels) *100.00;
         //std::cout << "percent red: " << percent << std::endl;
         return percentRed;
+    }
+
+    cv::Mat Erosion( int, void* )
+    {
+        int erosion_type = 2;
+        if( erosion_elem == 0 ){ erosion_type = cv::MORPH_RECT; }
+        else if( erosion_elem == 1 ){ erosion_type = cv::MORPH_CROSS; }
+        else if( erosion_elem == 2) { erosion_type = cv::MORPH_ELLIPSE; }
+        cv::Mat element = cv::getStructuringElement( erosion_type,
+                            cv::Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                            cv::Point( erosion_size, erosion_size ) );
+        cv::erode(noBackImage, erosionImage, element );
+        return erosionImage;
+    }
+
+    cv::Mat Dilation( int, void* )
+    {
+        int dilation_type = 2;
+        if( dilation_elem == 0 ){ dilation_type = cv::MORPH_RECT; }
+        else if( dilation_elem == 1 ){ dilation_type = cv::MORPH_CROSS; }
+        else if( dilation_elem == 2) { dilation_type = cv::MORPH_ELLIPSE; }
+        cv::Mat element = cv::getStructuringElement( dilation_type,
+                            cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                            cv::Point( dilation_size, dilation_size ) );
+        cv::dilate(noBackImage, dilationImage, element );
+        return dilationImage;
     }
 
     cv::Mat getShape(){
@@ -121,39 +156,13 @@ class appleInfo{
 
         cv::findContours(binaryThresh, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
-        cv::Mat image_copy = noBackImage.clone();
+        appleShape = noBackImage.clone();
 
-        cv::drawContours(image_copy, contours, -1, cv::Scalar(0,255,0), 2);
+        cv::drawContours(appleShape, contours, -1, cv::Scalar(0,255,0), 2);
 
-        return image_copy;
+        return appleShape;
     }
 
-
-    void Erosion( int, void* )
-    {
-        int erosion_type = 2;
-        if( erosion_elem == 0 ){ erosion_type = cv::MORPH_RECT; }
-        else if( erosion_elem == 1 ){ erosion_type = cv::MORPH_CROSS; }
-        else if( erosion_elem == 2) { erosion_type = cv::MORPH_ELLIPSE; }
-        cv::Mat element = cv::getStructuringElement( erosion_type,
-                            cv::Size( 2*erosion_size + 1, 2*erosion_size+1 ),
-                            cv::Point( erosion_size, erosion_size ) );
-        cv::erode(noBackImage, erosionImage, element );
-        //cv::imshow( "Erosion Demo", erosionImage);
-    }
-
-    void Dilation( int, void* )
-    {
-        int dilation_type = 2;
-        if( dilation_elem == 0 ){ dilation_type = cv::MORPH_RECT; }
-        else if( dilation_elem == 1 ){ dilation_type = cv::MORPH_CROSS; }
-        else if( dilation_elem == 2) { dilation_type = cv::MORPH_ELLIPSE; }
-        cv::Mat element = cv::getStructuringElement( dilation_type,
-                            cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
-                            cv::Point( dilation_size, dilation_size ) );
-        cv::dilate(noBackImage, dilationImage, element );
-        //cv::imshow( "Dilation Demo", dilationImage);
-    }
 
     //determines apple grade from percent red
     std::string grade(){
@@ -195,9 +204,8 @@ int main( int argc, char** argv )
     double percentage = apple.getColorPercent();
     std::cout << "red percentage = " << percentage << "%" << std::endl;
 
-
-    apple.Erosion(  0, 0 );
-    apple.Dilation(  0, 0 );
+    apple.erosionImage = apple.Erosion(  0, 0 );
+    apple.dilationImage = apple.Dilation(  0, 0 );
 
     apple.appleShape = apple.getShape();
 
@@ -206,8 +214,10 @@ int main( int argc, char** argv )
     //shows images
     cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
-    //cv::imshow("Red", apple.redImage);
-    //cv::imshow("Shape", apple.appleShape);
+    cv::imshow("Red", apple.redImage);
+    cv::imshow("Erosion", apple.erosionImage);
+    cv::imshow("Dilation", apple.dilationImage);
+    cv::imshow("Shape", apple.appleShape);
 
     cv::waitKey(0);
     
