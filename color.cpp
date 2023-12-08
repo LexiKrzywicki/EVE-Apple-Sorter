@@ -4,11 +4,15 @@
 #include "opencv2/imgcodecs.hpp"
 #include <iostream>
 
-int thresh = 100;  //originally 75
-cv::RNG rng(12345);
-cv::Mat appleHSV;
-cv::Mat drawing;
-cv::Mat imgApple;
+        // cv::Mat erosion_dst;
+        // cv::Mat dilation_dst;
+        // int erosion_elem = 0;
+        // int erosion_size = 5;
+        // int dilation_elem = 0;
+        // int dilation_size = 2;
+        // int const max_elem = 2;
+        // int const max_kernel_size = 21;
+
 
 class appleInfo{
     public:
@@ -17,11 +21,21 @@ class appleInfo{
         cv::Mat HSV;
         cv::Mat noBackImage;  //without background
         cv::Mat redImage;  //red only parts of the apple
+        cv::Mat erosionImage;
+        cv::Mat dilationImage;
         cv::Mat appleShape;
 
         double totalPixels;
         double redPixels;
         double percentRed;
+
+        //for erosion and dilation
+        int erosion_elem = 0;
+        int erosion_size = 5;
+        int dilation_elem = 0;
+        int dilation_size = 2;
+        int const max_elem = 2;
+        int const max_kernel_size = 21;
 
     cv::Mat removeBackground(){
 
@@ -106,6 +120,32 @@ class appleInfo{
         return image_copy;
     }
 
+    void Erosion( int, void* )
+    {
+        int erosion_type = 2;
+        if( erosion_elem == 0 ){ erosion_type = cv::MORPH_RECT; }
+        else if( erosion_elem == 1 ){ erosion_type = cv::MORPH_CROSS; }
+        else if( erosion_elem == 2) { erosion_type = cv::MORPH_ELLIPSE; }
+        cv::Mat element = cv::getStructuringElement( erosion_type,
+                            cv::Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                            cv::Point( erosion_size, erosion_size ) );
+        cv::erode(noBackImage, erosionImage, element );
+        cv::imshow( "Erosion Demo", erosionImage);
+    }
+
+    void Dilation( int, void* )
+    {
+        int dilation_type = 2;
+        if( dilation_elem == 0 ){ dilation_type = cv::MORPH_RECT; }
+        else if( dilation_elem == 1 ){ dilation_type = cv::MORPH_CROSS; }
+        else if( dilation_elem == 2) { dilation_type = cv::MORPH_ELLIPSE; }
+        cv::Mat element = cv::getStructuringElement( dilation_type,
+                            cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                            cv::Point( dilation_size, dilation_size ) );
+        cv::dilate(noBackImage, dilationImage, element );
+        cv::imshow( "Dilation Demo", dilationImage);
+    }
+
     //determines apple grade from percent red
     std::string grade(){
 
@@ -128,6 +168,7 @@ class appleInfo{
 };
 
 
+
 int main( int argc, char** argv )
 {
     appleInfo apple;
@@ -138,7 +179,7 @@ int main( int argc, char** argv )
     //crops image
     apple.origImage = apple.origImage(cv::Range(70,400), cv::Range(40, 610));
 
-    //convert to HSV
+    // //convert to HSV
     cvtColor(apple.origImage, apple.HSV, cv::COLOR_BGR2HSV);
 
 
@@ -153,11 +194,27 @@ int main( int argc, char** argv )
 
     std::cout << "GRADE: " << apple.grade() << std::endl;
 
-    //shows images
-    cv::imshow("Original", apple.origImage);
+    // //shows images
+    // cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
     cv::imshow("Red", apple.redImage);
     cv::imshow("Shape", apple.appleShape);
+
+
+
+
+    //erosion and dilution
+    cv::namedWindow( "Erosion Demo", cv::WINDOW_AUTOSIZE );
+    cv::namedWindow( "Dilation Demo", cv::WINDOW_AUTOSIZE );
+    // auto fun1 = apple.Erosion;
+    // auto fun2 = apple.Dilation;
+    // cv::createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Erosion Demo", &erosion_elem, max_elem, fun1);
+    // cv::createTrackbar( "Kernel size:\n 2n +1", "Erosion Demo", &erosion_size, max_kernel_size, fun1);
+    // cv::createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Dilation Demo", &dilation_elem, max_elem, fun2);
+    // cv::createTrackbar( "Kernel size:\n 2n +1", "Dilation Demo", &dilation_size, max_kernel_size, fun2);
+
+    apple.Erosion(  0, 0 );
+    apple.Dilation(  0, 0 );
 
     cv::waitKey(0);
     
