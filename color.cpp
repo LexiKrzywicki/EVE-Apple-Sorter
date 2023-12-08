@@ -17,29 +17,51 @@ class appleInfo{
         cv::Mat HSV;
         cv::Mat noBackImage;  //without background
         cv::Mat redImage;  //red only parts of the apple
+        cv::Mat erosionImage;
+        cv::Mat dilationImage;
         cv::Mat appleShape;
 
         double totalPixels;
         double redPixels;
         double percentRed;
 
+
+
+        //for erosion and dilation
+        int erosion_elem = 0;
+        int erosion_size = 5;
+        int dilation_elem = 0;
+        int dilation_size = 2;
+        int const max_elem = 2;
+        int const max_kernel_size = 21;
+
+
     cv::Mat removeBackground(){
 
-        cv::Mat imgBack;
+        cv::Mat maskLeft;
+        cv::Mat maskRight;
+        cv::Mat fullMask;
+        
         cv::Mat imgRight;
         cv::Mat combine;
 
-        cv::Scalar backLow(0,150,50);
-        cv::Scalar backHigh(35,255,255);
+        cv::Scalar backLow(0,0,0);
+        cv::Scalar backHigh(80,255,255);
 
-        cv::inRange(HSV, backLow, backHigh, imgBack);
+        cv::Scalar backBottom(150, 0, 0);
+        cv::Scalar backTop(179, 255, 255);
+
+        cv::inRange(HSV, backLow, backHigh, maskLeft);
+        cv::inRange(HSV, backBottom, backTop, maskRight);
+
+        fullMask = maskLeft + maskRight;
 
         //calculates total number of pixels that are not black - should only be apple
-        totalPixels = cv::countNonZero(imgBack); 
+        totalPixels = cv::countNonZero(fullMask); 
 
         //perform bitwise on mask
         cv::Mat finalApple;
-        cv::bitwise_and(origImage, origImage, finalApple, imgBack);
+        cv::bitwise_and(origImage, origImage, finalApple, fullMask);
 
         //final image is colored apple & black background
         return finalApple;
@@ -106,6 +128,33 @@ class appleInfo{
         return image_copy;
     }
 
+
+    void Erosion( int, void* )
+    {
+        int erosion_type = 2;
+        if( erosion_elem == 0 ){ erosion_type = cv::MORPH_RECT; }
+        else if( erosion_elem == 1 ){ erosion_type = cv::MORPH_CROSS; }
+        else if( erosion_elem == 2) { erosion_type = cv::MORPH_ELLIPSE; }
+        cv::Mat element = cv::getStructuringElement( erosion_type,
+                            cv::Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                            cv::Point( erosion_size, erosion_size ) );
+        cv::erode(noBackImage, erosionImage, element );
+        //cv::imshow( "Erosion Demo", erosionImage);
+    }
+
+    void Dilation( int, void* )
+    {
+        int dilation_type = 2;
+        if( dilation_elem == 0 ){ dilation_type = cv::MORPH_RECT; }
+        else if( dilation_elem == 1 ){ dilation_type = cv::MORPH_CROSS; }
+        else if( dilation_elem == 2) { dilation_type = cv::MORPH_ELLIPSE; }
+        cv::Mat element = cv::getStructuringElement( dilation_type,
+                            cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                            cv::Point( dilation_size, dilation_size ) );
+        cv::dilate(noBackImage, dilationImage, element );
+        //cv::imshow( "Dilation Demo", dilationImage);
+    }
+
     //determines apple grade from percent red
     std::string grade(){
 
@@ -146,6 +195,10 @@ int main( int argc, char** argv )
     double percentage = apple.getColorPercent();
     std::cout << "red percentage = " << percentage << "%" << std::endl;
 
+
+    apple.Erosion(  0, 0 );
+    apple.Dilation(  0, 0 );
+
     apple.appleShape = apple.getShape();
 
     std::cout << "GRADE: " << apple.grade() << std::endl;
@@ -153,8 +206,8 @@ int main( int argc, char** argv )
     //shows images
     cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
-    cv::imshow("Red", apple.redImage);
-    cv::imshow("Shape", apple.appleShape);
+    //cv::imshow("Red", apple.redImage);
+    //cv::imshow("Shape", apple.appleShape);
 
     cv::waitKey(0);
     
