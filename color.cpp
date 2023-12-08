@@ -16,6 +16,7 @@ class appleInfo{
         cv::Mat origImage;
         cv::Mat HSV;
         cv::Mat noBackImage;  //without background
+        cv::Mat noBackHSV;
         cv::Mat redImage;  //red only parts of the apple
         cv::Mat erosionImage;
         cv::Mat dilationImage;
@@ -74,7 +75,6 @@ class appleInfo{
         cv::Mat thresLeft;
         cv::Mat thresRight;
         cv::Mat thresFull;
-        cv::Mat noBackHSV;
         cv::Mat finalRed;
         cv::Mat finalRedBGR;  
 
@@ -149,14 +149,14 @@ class appleInfo{
         std::vector<cv::Vec4i> hierarchy;
 
         //convert noBack image to gray
-        cv::cvtColor(noBackImage, noBackColor, cv::COLOR_HSV2BGR);
+        cv::cvtColor(noBackHSV, noBackColor, cv::COLOR_HSV2BGR);
         cv::cvtColor(noBackColor, noBackGray, cv::COLOR_BGR2GRAY);
 
         cv::threshold(noBackGray, binaryThresh, 100, 255, cv::THRESH_BINARY);
 
         cv::findContours(binaryThresh, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
-        appleShape = noBackImage.clone();
+        appleShape = noBackColor.clone();
 
         cv::drawContours(appleShape, contours, -1, cv::Scalar(0,255,0), 2);
 
