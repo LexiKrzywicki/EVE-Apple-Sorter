@@ -4,23 +4,19 @@
 #include "opencv2/imgcodecs.hpp"
 #include <iostream>
 
-int thresh = 100;  //originally 75
-cv::RNG rng(12345);
-cv::Mat appleHSV;
-cv::Mat drawing;
-cv::Mat imgApple;
-
 class appleInfo{
     public:
 
         cv::Mat origImage;
         cv::Mat HSV;
         cv::Mat noBackImage;  //without background
-        cv::Mat noBackHSV;
         cv::Mat redImage;  //red only parts of the apple
         cv::Mat erosionImage;
         cv::Mat dilationImage;
         cv::Mat appleShape;
+        cv::Mat leftApple;
+        cv::Mat middleApple;
+        cv::Mat rightApple;
 
         double totalPixels;
         double redPixels;
@@ -72,6 +68,7 @@ class appleInfo{
 
     cv::Mat getRed(){
 
+        cv::Mat noBackHSV;
         cv::Mat thresLeft;
         cv::Mat thresRight;
         cv::Mat thresFull;
@@ -139,26 +136,80 @@ class appleInfo{
         return dilationImage;
     }
 
+    //to get individual apples
+    cv::Mat newCroppedImg(cv::Rect rectShape){
+        cv::Mat cropped;
+        cv::Mat cloned;
+        cloned = noBackImage.clone();
+
+        int x = rectShape.x;
+        int y = rectShape.y;
+
+        int width = rectShape.width;
+        int height = rectShape.height;
+
+        cv::Rect myROI(x, y, width+1, height+1);
+
+        // std::cout<< x << " and " << width +x << std::endl;
+        // std::cout <<y << " and " << height +y <<std::endl;
+
+        // std::cout<< "width: " << cropped.size().width<< std::endl;
+        // std::cout<< "height: " << cropped.size().height <<std::endl;
+
+        
+        cropped = noBackImage(myROI);
+
+        return cropped;
+
+    }
+
     cv::Mat getShape(){
 
         cv::Mat noBackGray;
-        cv::Mat noBackColor;
         cv::Mat binaryThresh;
+
+
+int thresh = 100;
+cv::RNG rng(12345);
+
 
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
 
         //convert noBack image to gray
-        cv::cvtColor(noBackHSV, noBackColor, cv::COLOR_HSV2BGR);
-        cv::cvtColor(noBackColor, noBackGray, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(noBackImage, noBackGray, cv::COLOR_BGR2GRAY);
 
         cv::threshold(noBackGray, binaryThresh, 100, 255, cv::THRESH_BINARY);
 
+
+        cv::Mat canny_output;
+        cv::Canny( noBackGray, canny_output, thresh, thresh*2 );
+
+
         cv::findContours(binaryThresh, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
-        appleShape = noBackColor.clone();
+        std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
+        std::vector<cv::Rect> boundRect( contours.size() );
 
-        cv::drawContours(appleShape, contours, -1, cv::Scalar(0,255,0), 2);
+        cv::Mat drawing = cv::Mat::zeros( canny_output.size(), CV_8UC3 );
+
+        appleShape = noBackImage.clone();
+
+        for( size_t i = 0; i < contours.size(); i++ )
+        {
+            cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
+            boundRect[i] = cv::boundingRect( contours_poly[i] );
+            cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
+            rectangle(appleShape, boundRect[i].tl(), boundRect[i].br(), color, 2 );
+        }   
+
+        leftApple = newCroppedImg(boundRect[0]);
+        middleApple = newCroppedImg(boundRect[1]);
+        rightApple = newCroppedImg(boundRect[2]); 
+
+        
+
+        //cv::drawContours(appleShape, contours, -1, cv::Scalar(0,255,0), 2);
 
         return appleShape;
     }
@@ -212,11 +263,14 @@ int main( int argc, char** argv )
     std::cout << "GRADE: " << apple.grade() << std::endl;
 
     //shows images
-    cv::imshow("Original", apple.origImage);
+    //cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
-    cv::imshow("Red", apple.redImage);
-    cv::imshow("Erosion", apple.erosionImage);
-    cv::imshow("Dilation", apple.dilationImage);
+    //cv::imshow("Red", apple.redImage);
+    //cv::imshow("Erosion", apple.erosionImage);
+    //cv::imshow("Dilation", apple.dilationImage);
+    cv::imshow("Left", apple.leftApple);
+    cv::imshow("Middle", apple.middleApple);
+    cv::imshow("Right", apple.rightApple);
     cv::imshow("Shape", apple.appleShape);
 
     cv::waitKey(0);
