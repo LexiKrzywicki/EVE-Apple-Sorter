@@ -263,7 +263,7 @@ class appleInfo{
             std::cout << "low red percentage" << std::endl;
         }
 
-        std::cout << "GRADE: " << apple.grade() << std::endl;
+        std::cout << "GRADE: ";
         return strGrade;
     }
 
@@ -293,6 +293,8 @@ int main( int argc, char** argv )
     apple.dilationImage = apple.Dilation(0,0);
 
     apple.appleShape = apple.seperate();
+
+    std::cout << apple.grade() << std::endl;
 
     //shows images
     //cv::imshow("Original", apple.origImage);
