@@ -14,6 +14,12 @@ class appleInfo{
         cv::Mat erosionImage;
         cv::Mat dilationImage;
         cv::Mat appleShape;
+
+        std::pair<cv::Mat, double> apple0;
+        std::pair<cv::Mat, double> apple1;
+        std::pair<cv::Mat, double> apple2;
+
+
         cv::Mat leftApple;
         cv::Mat middleApple;
         cv::Mat rightApple;
@@ -26,7 +32,7 @@ class appleInfo{
 
         //for erosion and dilation
         int erosion_elem = 0;
-        int erosion_size = 5;
+        int erosion_size = 2;
         int dilation_elem = 0;
         int dilation_size = 2;
         int const max_elem = 2;
@@ -132,7 +138,7 @@ class appleInfo{
         cv::Mat element = cv::getStructuringElement( dilation_type,
                             cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
                             cv::Point( dilation_size, dilation_size ) );
-        cv::dilate(noBackImage, dilationImage, element );
+        cv::dilate(erosionImage, dilationImage, element );
         return dilationImage;
     }
 
@@ -149,67 +155,85 @@ class appleInfo{
         int height = rectShape.height;
 
         cv::Rect myROI(x, y, width+1, height+1);
-
-        // std::cout<< x << " and " << width +x << std::endl;
-        // std::cout <<y << " and " << height +y <<std::endl;
-
-        // std::cout<< "width: " << cropped.size().width<< std::endl;
-        // std::cout<< "height: " << cropped.size().height <<std::endl;
-
-        
+      
         cropped = noBackImage(myROI);
 
         return cropped;
-
     }
 
-    cv::Mat getShape(){
+    double appleRatio(cv::Mat desiredApple){
+        double width = desiredApple.size().width;
+        double height = desiredApple.size().height;
+
+        cv::Mat desiredGray;
+        cvtColor(desiredApple, desiredGray, cv::COLOR_BGR2GRAY);
+
+        double totalArea = width*height;
+        double nonZero = cv::countNonZero(desiredGray);
+
+        return (nonZero/totalArea)*100.00;
+    }
+
+
+
+    cv::Mat seperate(){
 
         cv::Mat noBackGray;
         cv::Mat binaryThresh;
 
-
-int thresh = 100;
-cv::RNG rng(12345);
-
+        int thresh = 100;
+        cv::RNG rng(12345);
 
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
 
-        //convert noBack image to gray
-        cv::cvtColor(noBackImage, noBackGray, cv::COLOR_BGR2GRAY);
+        //convert image to gray
+        cv::cvtColor(dilationImage, noBackGray, cv::COLOR_BGR2GRAY);
 
         cv::threshold(noBackGray, binaryThresh, 100, 255, cv::THRESH_BINARY);
 
-
         cv::Mat canny_output;
         cv::Canny( noBackGray, canny_output, thresh, thresh*2 );
-
 
         cv::findContours(binaryThresh, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
         std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
         std::vector<cv::Rect> boundRect( contours.size() );
+        std::vector<cv::Rect> rectArea(contours.size());
 
         cv::Mat drawing = cv::Mat::zeros( canny_output.size(), CV_8UC3 );
 
         appleShape = noBackImage.clone();
 
+        //gets a list of rectangles based on contours and draws them on image
         for( size_t i = 0; i < contours.size(); i++ )
         {
             cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
             boundRect[i] = cv::boundingRect( contours_poly[i] );
             cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
             rectangle(appleShape, boundRect[i].tl(), boundRect[i].br(), color, 2 );
-        }   
+            if(boundRect[i].area() > rectArea[0].area()){
+                rectArea[2] = rectArea[1];
+                rectArea[1] = rectArea[0];
+                rectArea[0] = boundRect[i];
+            }
+            else if(boundRect[i].area() > rectArea[1].area() && boundRect[i].area() != rectArea[0].area()){
+                rectArea[2] = rectArea[1];
+                rectArea[1] = boundRect[i];
+            }
+            else if(boundRect[i].area( ) > rectArea[2].area() && boundRect[i].area() != rectArea[1].area()){
+                rectArea[2] = boundRect[i];
+            }
+        } 
 
-        leftApple = newCroppedImg(boundRect[0]);
-        middleApple = newCroppedImg(boundRect[1]);
-        rightApple = newCroppedImg(boundRect[2]); 
+        apple0.first = newCroppedImg(rectArea[0]);
+        apple0.second = appleRatio(apple0.first);
 
-        
+        std::get<0>(apple1) = newCroppedImg(rectArea[1]);
+        apple1.second = appleRatio(apple1.first);
 
-        //cv::drawContours(appleShape, contours, -1, cv::Scalar(0,255,0), 2);
+        std::get<0>(apple2) = newCroppedImg(rectArea[2]); 
+        apple2.second = appleRatio(apple1.first);
 
         return appleShape;
     }
@@ -218,18 +242,28 @@ cv::RNG rng(12345);
     //determines apple grade from percent red
     std::string grade(){
 
-        std::string strGrade;
+        std::string strGrade = "Cider";
 
         if(percentRed > 60){
-            strGrade = "G1";
+            if(apple0.second > 78.4 && apple1.second > 78.4 && apple2.second >78.4){
+                strGrade = "G1";
+            }
+            else{
+                strGrade = "G2";
+                std::cout << "bad ratios" << std::endl;
+            }
+
         }
         else if(percentRed > 45){
             strGrade = "G2";
+            std::cout << "red percentage not high enough" << std::endl;
         }
         else{
             strGrade = "Cider";
+            std::cout << "low red percentage" << std::endl;
         }
 
+        std::cout << "GRADE: " << apple.grade() << std::endl;
         return strGrade;
     }
 
@@ -255,22 +289,20 @@ int main( int argc, char** argv )
     double percentage = apple.getColorPercent();
     std::cout << "red percentage = " << percentage << "%" << std::endl;
 
-    apple.erosionImage = apple.Erosion(  0, 0 );
-    apple.dilationImage = apple.Dilation(  0, 0 );
+    apple.erosionImage = apple.Erosion(0,0);
+    apple.dilationImage = apple.Dilation(0,0);
 
-    apple.appleShape = apple.getShape();
-
-    std::cout << "GRADE: " << apple.grade() << std::endl;
+    apple.appleShape = apple.seperate();
 
     //shows images
     //cv::imshow("Original", apple.origImage);
-    cv::imshow("No Background", apple.noBackImage);
-    //cv::imshow("Red", apple.redImage);
-    //cv::imshow("Erosion", apple.erosionImage);
-    //cv::imshow("Dilation", apple.dilationImage);
-    cv::imshow("Left", apple.leftApple);
-    cv::imshow("Middle", apple.middleApple);
-    cv::imshow("Right", apple.rightApple);
+    // cv::imshow("No Background", apple.noBackImage);
+    // cv::imshow("Red", apple.redImage);
+    // cv::imshow("Erosion", apple.erosionImage);
+    // cv::imshow("Dilation", apple.dilationImage);
+    cv::imshow("Apple0", apple.apple0.first);
+    cv::imshow("Apple1", apple.apple1.first);
+    cv::imshow("Apple2", apple.apple2.first);
     cv::imshow("Shape", apple.appleShape);
 
     cv::waitKey(0);
