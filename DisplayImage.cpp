@@ -174,12 +174,10 @@ int main( int argc, char** argv )
 
 
     cv::Mat frame;
+
     //--- INITIALIZE VIDEOCAPTURE
     cv::VideoCapture cap;
-    // open the default camera using default API
-    // cap.open(0);
-    // OR advance usage: select any API backend
-    int deviceID = 0;             // 0 = open default camera
+    int deviceID = 2;             // 0 = open default camera (raspi), 2 on dell
     int apiID = cv::CAP_ANY;      // 0 = autodetect default API
     // open selected camera using selected API
     cap.open(deviceID, apiID);
@@ -198,8 +196,8 @@ int main( int argc, char** argv )
 
     apple.origImage = frame;
 
-    //crops image
-    apple.origImage = apple.origImage(cv::Range(70,400), cv::Range(40, 610));
+    //crops image  (start row, end row) (start col, end col)
+    apple.origImage = apple.origImage(cv::Range(140,440), cv::Range(10, 630));
 
     // //convert to HSV
     cvtColor(apple.origImage, apple.HSV, cv::COLOR_BGR2HSV);
@@ -217,28 +215,15 @@ int main( int argc, char** argv )
     std::cout << "GRADE: " << apple.grade() << std::endl;
 
     // //shows images
-    // cv::imshow("Original", apple.origImage);
-    //cv::imshow("No Background", apple.noBackImage);
-    //cv::imshow("Red", apple.redImage);
-    //cv::imshow("Shape", apple.appleShape);
-
-
-
-
-    //erosion and dilution
-    //cv::namedWindow( "Erosion Demo", cv::WINDOW_AUTOSIZE );
-    //cv::namedWindow( "Dilation Demo", cv::WINDOW_AUTOSIZE );
-    // auto fun1 = apple.Erosion;
-    // auto fun2 = apple.Dilation;
-    // cv::createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Erosion Demo", &erosion_elem, max_elem, fun1);
-    // cv::createTrackbar( "Kernel size:\n 2n +1", "Erosion Demo", &erosion_size, max_kernel_size, fun1);
-    // cv::createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Dilation Demo", &dilation_elem, max_elem, fun2);
-    // cv::createTrackbar( "Kernel size:\n 2n +1", "Dilation Demo", &dilation_size, max_kernel_size, fun2);
+    cv::imshow("Original", apple.origImage);
+    cv::imshow("No Background", apple.noBackImage);
+    cv::imshow("Red", apple.redImage);
+    cv::imshow("Shape", apple.appleShape);
 
     apple.Erosion(  0, 0 );
     apple.Dilation(  0, 0 );
 
-    //cv::waitKey(0);
+    cv::waitKey(0);
     
     return 0;
 }
