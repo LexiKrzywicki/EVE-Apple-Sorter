@@ -130,7 +130,7 @@ class appleInfo{
                             cv::Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                             cv::Point( erosion_size, erosion_size ) );
         cv::erode(noBackImage, erosionImage, element );
-        cv::imshow( "Erosion Demo", erosionImage);
+        //cv::imshow( "Erosion Demo", erosionImage);
     }
 
     void Dilation( int, void* )
@@ -143,7 +143,7 @@ class appleInfo{
                             cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
                             cv::Point( dilation_size, dilation_size ) );
         cv::dilate(noBackImage, dilationImage, element );
-        cv::imshow( "Dilation Demo", dilationImage);
+        //cv::imshow( "Dilation Demo", dilationImage);
     }
 
     //determines apple grade from percent red
@@ -164,23 +164,44 @@ class appleInfo{
         return strGrade;
     }
 
-};
 
+};
 
 
 
 int main( int argc, char** argv )
 {
+
+
+    cv::Mat frame;
+
+    //--- INITIALIZE VIDEOCAPTURE
+    cv::VideoCapture cap;
+    int deviceID = 2;             // 0 = open default camera (raspi), 2 on dell
+    int apiID = cv::CAP_ANY;      // 0 = autodetect default API
+    // open selected camera using selected API
+    cap.open(deviceID, apiID);
+    // check if we succeeded
+    if (!cap.isOpened()) {
+        std::cerr << "ERROR! Unable to open camera\n";
+        return -1;
+    }
+
+    cap.read(frame);
+
     appleInfo apple;
 
     //get image from commandline
-    apple.origImage = cv::imread(argv[1], cv::IMREAD_COLOR);
-  
-    //crops image
-    apple.origImage = apple.origImage(cv::Range(70,400), cv::Range(40, 610));
+    //apple.origImage = cv::imread(frame, cv::IMREAD_COLOR);
+
+    apple.origImage = frame;
+
+    //crops image  (start row, end row) (start col, end col)
+    apple.origImage = apple.origImage(cv::Range(140,440), cv::Range(10, 630));
 
     // //convert to HSV
     cvtColor(apple.origImage, apple.HSV, cv::COLOR_BGR2HSV);
+
 
     apple.noBackImage = apple.removeBackground();
 
@@ -194,23 +215,10 @@ int main( int argc, char** argv )
     std::cout << "GRADE: " << apple.grade() << std::endl;
 
     // //shows images
-    // cv::imshow("Original", apple.origImage);
+    cv::imshow("Original", apple.origImage);
     cv::imshow("No Background", apple.noBackImage);
     cv::imshow("Red", apple.redImage);
     cv::imshow("Shape", apple.appleShape);
-
-
-
-
-    //erosion and dilution
-    cv::namedWindow( "Erosion Demo", cv::WINDOW_AUTOSIZE );
-    cv::namedWindow( "Dilation Demo", cv::WINDOW_AUTOSIZE );
-    // auto fun1 = apple.Erosion;
-    // auto fun2 = apple.Dilation;
-    // cv::createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Erosion Demo", &erosion_elem, max_elem, fun1);
-    // cv::createTrackbar( "Kernel size:\n 2n +1", "Erosion Demo", &erosion_size, max_kernel_size, fun1);
-    // cv::createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Dilation Demo", &dilation_elem, max_elem, fun2);
-    // cv::createTrackbar( "Kernel size:\n 2n +1", "Dilation Demo", &dilation_size, max_kernel_size, fun2);
 
     apple.Erosion(  0, 0 );
     apple.Dilation(  0, 0 );
