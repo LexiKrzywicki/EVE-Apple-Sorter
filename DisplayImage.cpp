@@ -3,15 +3,51 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include <iostream>
+#include <wiringPi.h>
+#include "libHCSR04.h"
 
-        // cv::Mat erosion_dst;
-        // cv::Mat dilation_dst;
-        // int erosion_elem = 0;
-        // int erosion_size = 5;
-        // int dilation_elem = 0;
-        // int dilation_size = 2;
-        // int const max_elem = 2;
-        // int const max_kernel_size = 21;
+using namespace std;
+
+int trigger = 1;
+int echo = 5;
+
+HCSR04::HCSR04(){}
+
+void HCSR04::init(int trigger, int echo)
+{
+    this->trigger=trigger;
+    this->echo=echo;
+    pinMode(trigger, OUTPUT);
+    pinMode(echo, INPUT);
+    digitalWrite(trigger, LOW);
+    delay(500);
+}
+
+double HCSR04::distance(int timeout)
+{
+    delay(10);
+
+    digitalWrite(trigger, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigger, LOW);
+
+    now=micros();
+
+    while (digitalRead(echo) == LOW && micros()-now<timeout);
+        recordPulseLength();
+
+    travelTimeUsec = endTimeUsec - startTimeUsec;
+    distanceMeters = 100*((travelTimeUsec/1000000.0)*340.29)/2;
+
+    return distanceMeters;
+}
+
+void HCSR04::recordPulseLength()
+{
+    startTimeUsec = micros();
+    while ( digitalRead(echo) == HIGH );
+    endTimeUsec = micros();
+}
 
 
 class appleInfo{
@@ -171,6 +207,17 @@ class appleInfo{
 
 int main( int argc, char** argv )
 {
+
+    HCSR04 ultrasonic;
+    ultrasonic.init(trigger, echo);
+
+    while(ultrasonic.distance(1000000) > 18){
+        ultrasonic.distance(1000000);
+    }
+
+    std::cout << "apple found" << std::endl;
+    std::cout << "Distance is " << ultrasonic.distance(1000000) << " cm." << std::endl;
+
 
 
     cv::Mat frame;
