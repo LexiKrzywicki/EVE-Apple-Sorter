@@ -1,15 +1,16 @@
 import cv2
 import numpy as np
+import sys
 
 class AppleInfo:
-    def __init__(self):
-        self.orig_image = None
-        self.hsv = None
-        self.no_back_image = None
-        self.red_image = None
-        self.erosion_image = None
-        self.dilation_image = None
-        self.apple_shape = None
+    def __init__(self, orig_image, hsv, back_image, red_image, erosion_image, dilation_image, apple_shape):
+        self.orig_image = orig_image
+        self.hsv = hsv
+        self.no_back_image = back_image
+        self.red_image = red_image
+        self.erosion_image = erosion_image
+        self.dilation_image = dilation_image
+        self.apple_shape = apple_shape
         self.total_pixels = 0
         self.red_pixels = 0
         self.percent_red = 0
@@ -27,8 +28,16 @@ class AppleInfo:
         self.apple2 = None
 
     def remove_background(self):
-        mask_left = cv2.inRange(self.hsv, np.array([0, 0, 0]), np.array([80, 255, 255]))
-        mask_right = cv2.inRange(self.hsv, np.array([150, 0, 0]), np.array([179, 255, 255]))
+
+        back_low = np.array([0, 0, 0])
+        back_high = np.array([80, 150, 150])
+
+        back_bottom = np.array([150, 0, 0])
+        back_top = np.array([179, 255, 255])
+
+
+        mask_left = cv2.inRange(self.hsv, back_high, back_low)
+        mask_right = cv2.inRange(self.hsv, back_bottom, back_top)
         full_mask = mask_left + mask_right
         self.total_pixels = cv2.countNonZero(full_mask)
         final_apple = cv2.bitwise_and(self.orig_image, self.orig_image, mask=full_mask)
@@ -132,7 +141,7 @@ def main():
     apple = AppleInfo()
 
     # get image from command line
-    apple.orig_image = cv2.imread(argv[1], cv2.IMREAD_COLOR)
+    apple.orig_image = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
 
     # convert to HSV
     cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV, apple.hsv)
@@ -142,7 +151,7 @@ def main():
     apple.red_image = apple.get_red()
 
     percentage = apple.get_color_percent()
-    print(f"Red percentage = {percentage}%")
+    print("Red percentage = " + percentage)
 
     apple.erosion_image = apple.erosion()
     apple.dilation_image = apple.dilation()
@@ -154,13 +163,13 @@ def main():
     # shows images
     cv2.imshow("Original", apple.orig_image)
     cv2.imshow("No Background", apple.no_back_image)
-    cv2.imshow("Red", apple.red_image)
-    cv2.imshow("Erosion", apple.erosion_image)
-    cv2.imshow("Dilation", apple.dilation_image)
-    cv2.imshow("Apple0", apple.apple0[0])
-    cv2.imshow("Apple1", apple.apple1[0])
-    cv2.imshow("Apple2", apple.apple2[0])
-    cv2.imshow("Shape", apple.apple_shape)
+    #cv2.imshow("Red", apple.red_image)
+    #cv2.imshow("Erosion", apple.erosion_image)
+    #cv2.imshow("Dilation", apple.dilation_image)
+    #cv2.imshow("Apple0", apple.apple0[0])
+    #cv2.imshow("Apple1", apple.apple1[0])
+    #cv2.imshow("Apple2", apple.apple2[0])
+    #cv2.imshow("Shape", apple.apple_shape)
 
     cv2.waitKey(0)
 
