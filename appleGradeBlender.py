@@ -138,20 +138,24 @@ class AppleInfo:
 
 
 def main():
-    apple = AppleInfo()
-
+    image = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
+    apple = AppleInfo(image, image, image, image, image, image, image)
+    cv2.imshow("Original", apple.orig_image)
+    cv2.waitKey(0)
     # get image from command line
-    apple.orig_image = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
+    #apple.orig_image = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
 
     # convert to HSV
-    cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV, apple.hsv)
-
+    #cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV, apple.hsv)
+    cv2.cvtColor(apple.hsv, cv2.COLOR_BGR2HSV, apple.orig_image)
+    cv2.imshow("No Background", apple.orig_image)
+    cv2.waitKey(0)
     apple.no_back_image = apple.remove_background()
 
     apple.red_image = apple.get_red()
 
     percentage = apple.get_color_percent()
-    print("Red percentage = " + percentage)
+    print("Red percentage = " + str(percentage))
 
     apple.erosion_image = apple.erosion()
     apple.dilation_image = apple.dilation()
