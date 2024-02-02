@@ -29,38 +29,38 @@ class AppleInfo:
 
     def remove_background(self):
 
-        back_low = np.array([0, 0, 0])
-        back_high = np.array([80, 150, 150])
+        low_range = np.array([0, 0, 0])
+        high_range = np.array([180, 210, 230])
 
-        back_bottom = np.array([150, 0, 0])
-        back_top = np.array([179, 255, 255])
+        full_mask = cv2.inRange(self.hsv, low_range, high_range)
 
-
-        mask_left = cv2.inRange(self.hsv, back_high, back_low)
-        mask_right = cv2.inRange(self.hsv, back_bottom, back_top)
-        full_mask = mask_left + mask_right
         self.total_pixels = cv2.countNonZero(full_mask)
+        print(self.total_pixels)
         final_apple = cv2.bitwise_and(self.orig_image, self.orig_image, mask=full_mask)
         return final_apple
 
     def get_red(self):
         no_back_hsv = cv2.cvtColor(self.no_back_image, cv2.COLOR_BGR2HSV)
-        red_left_low_range = np.array([0, 1, 0])
-        red_left_high_range = np.array([25, 255, 255])
-        red_right_low_range = np.array([155, 0, 0])
-        red_right_high_range = np.array([179, 255, 255])
 
-        thres_left = cv2.inRange(no_back_hsv, red_left_low_range, red_left_high_range)
-        thres_right = cv2.inRange(no_back_hsv, red_right_low_range, red_right_high_range)
+        back_low = np.array([0, 0, 0])
+        back_high = np.array([30, 255, 255])
 
-        thres_full = thres_left + thres_right
+        back_bottom = np.array([140, 0, 0])
+        back_top = np.array([179, 255, 255])
 
-        final_red = cv2.bitwise_and(no_back_hsv, no_back_hsv, mask=thres_full)
-        self.red_pixels = cv2.countNonZero(thres_full)
+        mask_left = cv2.inRange(no_back_hsv, back_low, back_high)
+        mask_right = cv2.inRange(no_back_hsv, back_bottom, back_top)
+        full_mask = mask_left + mask_right
+
+        final_red = cv2.bitwise_and(no_back_hsv, no_back_hsv, mask=full_mask)
+        self.red_pixels = cv2.countNonZero(final_red)
+        print(self.red_pixels)
         self.red_image = cv2.cvtColor(final_red, cv2.COLOR_HSV2BGR)
         return self.red_image
 
     def get_color_percent(self):
+        print(self.total_pixels)
+        print(self.red_pixels)
         self.percent_red = (self.red_pixels / self.total_pixels) * 100.00
         return self.percent_red
 
@@ -140,22 +140,16 @@ class AppleInfo:
 def main():
     image = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
     apple = AppleInfo(image, image, image, image, image, image, image)
-    cv2.imshow("Original", apple.orig_image)
-    cv2.waitKey(0)
-    # get image from command line
-    #apple.orig_image = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
 
     # convert to HSV
-    #cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV, apple.hsv)
-    cv2.cvtColor(apple.hsv, cv2.COLOR_BGR2HSV, apple.orig_image)
-    cv2.imshow("No Background", apple.orig_image)
-    cv2.waitKey(0)
+    apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
+
     apple.no_back_image = apple.remove_background()
 
     apple.red_image = apple.get_red()
 
-    percentage = apple.get_color_percent()
-    print("Red percentage = " + str(percentage))
+    apple.get_color_percent()
+    print(apple.percent_red)
 
     apple.erosion_image = apple.erosion()
     apple.dilation_image = apple.dilation()
@@ -167,13 +161,13 @@ def main():
     # shows images
     cv2.imshow("Original", apple.orig_image)
     cv2.imshow("No Background", apple.no_back_image)
-    #cv2.imshow("Red", apple.red_image)
-    #cv2.imshow("Erosion", apple.erosion_image)
-    #cv2.imshow("Dilation", apple.dilation_image)
-    #cv2.imshow("Apple0", apple.apple0[0])
-    #cv2.imshow("Apple1", apple.apple1[0])
-    #cv2.imshow("Apple2", apple.apple2[0])
-    #cv2.imshow("Shape", apple.apple_shape)
+    cv2.imshow("Red", apple.red_image)
+    cv2.imshow("Erosion", apple.erosion_image)
+    cv2.imshow("Dilation", apple.dilation_image)
+    cv2.imshow("Apple0", apple.apple0[0])
+    cv2.imshow("Apple1", apple.apple1[0])
+    cv2.imshow("Apple2", apple.apple2[0])
+    cv2.imshow("Shape", apple.apple_shape)
 
     cv2.waitKey(0)
 
