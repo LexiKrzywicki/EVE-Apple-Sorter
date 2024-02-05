@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 class AppleInfo:
-    def __init__(self):
+    def __init__(self, orig_image, hsv, back_image, red_image, erosion_image, dilation_image, apple_shape):
         self.orig_image = None
         self.hsv = None
         self.no_back_image = None
@@ -25,6 +25,7 @@ class AppleInfo:
     def remove_background(self):
         img_back = cv2.inRange(self.hsv, np.array([0, 150, 50]), np.array([35, 255, 255]))
         self.total_pixels = cv2.countNonZero(img_back)
+        print(self.total_pixels)
         final_apple = cv2.bitwise_and(self.orig_image, self.orig_image, mask=img_back)
         return final_apple
 
@@ -34,9 +35,11 @@ class AppleInfo:
         final_red = cv2.bitwise_and(self.no_back_image, self.no_back_image, mask=thres)
         self.red_pixels = cv2.countNonZero(thres)
         self.red_image = cv2.cvtColor(final_red, cv2.COLOR_HSV2BGR)
+        print(self.red_pixels)
         return self.red_image
 
     def get_color_percent(self):
+        print(self.red_pixels, self.total_pixels)
         self.percent_red = (self.red_pixels / self.total_pixels) * 100.00
         return self.percent_red
 
@@ -78,34 +81,41 @@ def main():
         print("ERROR! Unable to open camera")
         return -1
 
-    _, frame = cap.read()
+    result, image = cap.read()
 
-    apple = AppleInfo()
+    if result:
+        cv2.namedWindow("Resized_window", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("Resized_window", 640, 480)
+        cv2.imshow("Resized_window", image)
+        #cv2.imshow("Image Taken", image[440:1040, 200:1580])
+        cv2.waitKey(0)
 
-    apple.orig_image = frame[140:440, 10:630]
+    apple = AppleInfo(image, image, image, image, image, image, image)
+    #apple.orig_image = image[140:440, 10:630]
+    apple.orig_image = image
 
-    cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV, apple.hsv)
+    apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
 
     apple.no_back_image = apple.remove_background()
 
     apple.red_image = apple.get_red()
 
-    percentage = apple.get_color_percent()
-    print(f"Red percentage = {percentage}%")
+    apple.get_color_percent()
+    print(apple.percent_red)
 
     apple.apple_shape = apple.get_shape()
 
     print("GRADE:", apple.grade())
 
-    cv2.imshow("Original", apple.orig_image)
-    cv2.imshow("No Background", apple.no_back_image)
-    cv2.imshow("Red", apple.red_image)
-    cv2.imshow("Shape", apple.apple_shape)
+    # cv2.imshow("Original", apple.orig_image)
+    # cv2.imshow("No Background", apple.no_back_image)
+    # cv2.imshow("Red", apple.red_image)
+    # cv2.imshow("Shape", apple.apple_shape)
 
     apple.erosion()
     apple.dilation()
 
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
 
 
 if __name__ == "__main__":
