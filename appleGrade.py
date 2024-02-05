@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from time import time
 
 class AppleInfo:
     def __init__(self, orig_image, hsv, back_image, red_image, erosion_image, dilation_image, apple_shape):
@@ -23,10 +24,13 @@ class AppleInfo:
         self.max_kernel_size = 21
 
     def remove_background(self):
-        img_back = cv2.inRange(self.hsv, np.array([0, 150, 50]), np.array([35, 255, 255]))
-        self.total_pixels = cv2.countNonZero(img_back)
+        #img_back = cv2.inRange(self.hsv, np.array([0, 150, 50]), np.array([35, 255, 255]))
+        img_back = cv2.inRange(self.hsv, np.array([0, 112, 0]), np.array([35, 255, 255]))
+        img_back1 = cv2.inRange(self.hsv, np.array([160, 112, 0]), np.array([180, 255, 255]))
+        full = img_back + img_back1
+        self.total_pixels = cv2.countNonZero(full)
         print(self.total_pixels)
-        final_apple = cv2.bitwise_and(self.orig_image, self.orig_image, mask=img_back)
+        final_apple = cv2.bitwise_and(self.orig_image, self.orig_image, mask=full)
         return final_apple
 
     def get_red(self):
@@ -76,23 +80,40 @@ class AppleInfo:
 
 
 def main():
+    time_start = int(time() * 1000)
+
     cap = cv2.VideoCapture(2)
+
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     if not cap.isOpened():
         print("ERROR! Unable to open camera")
         return -1
 
     result, image = cap.read()
 
-    if result:
-        cv2.namedWindow("Resized_window", cv2.WINDOW_NORMAL)
-        cv2.resizeWindow("Resized_window", 640, 480)
-        cv2.imshow("Resized_window", image)
-        #cv2.imshow("Image Taken", image[440:1040, 200:1580])
-        cv2.waitKey(0)
+    time_capture = int(time() * 1000)
+
+
+    # if result:
+    #     cv2.namedWindow("Resized_window", cv2.WINDOW_NORMAL)
+    #     cv2.resizeWindow("Resized_window", 640, 480)
+    #     cv2.imshow("Resized_window", image[540:1120, 300:1680])
+    #     #cv2.imshow("Resized_window", image[340:1140, 300:1680])
+    #     cv2.waitKey(0)
 
     apple = AppleInfo(image, image, image, image, image, image, image)
-    #apple.orig_image = image[140:440, 10:630]
-    apple.orig_image = image
+
+    # Adjusts the brightness by adding 10 to each pixel value 
+    brightness = 2
+    # Adjusts the contrast by scaling the pixel values by 2.3 
+    contrast = 1.3  
+    apple.orig_image = cv2.addWeighted(image, contrast, np.zeros(image.shape, image.dtype), 0, brightness) 
+    # # Adjusts the saturation by multiplying it by 1.5 
+    # apple.orig_image[:, :, 1] = apple.orig_image[:, :, 1] * 1.5
+ 
+
+    apple.orig_image = image[540:1120, 300:1680]
 
     apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
 
@@ -101,21 +122,37 @@ def main():
     apple.red_image = apple.get_red()
 
     apple.get_color_percent()
-    print(apple.percent_red)
+    print("Percent Red = ", apple.percent_red)
+
+    apple.erosion()
+    apple.dilation()
 
     apple.apple_shape = apple.get_shape()
 
     print("GRADE:", apple.grade())
 
-    # cv2.imshow("Original", apple.orig_image)
-    # cv2.imshow("No Background", apple.no_back_image)
-    # cv2.imshow("Red", apple.red_image)
-    # cv2.imshow("Shape", apple.apple_shape)
+    time_end = int(time() * 1000)
+    time_cap = time_capture - time_start
 
-    apple.erosion()
-    apple.dilation()
+    time_total = time_end - time_start
 
-    #cv2.waitKey(0)
+    print("total time (ms): ", time_total)
+    print("capture time (ms): ", time_cap)
+
+    cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Original", 640, 480)
+    cv2.imshow("Original", apple.orig_image)
+    cv2.namedWindow("No Background", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("No Background", 640, 480)
+    cv2.imshow("No Background", apple.no_back_image)
+    cv2.namedWindow("Red", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Red", 640, 480)
+    cv2.imshow("Red", apple.red_image)
+    cv2.namedWindow("Shape", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Shape", 640, 480)
+    cv2.imshow("Shape", apple.apple_shape)
+
+    cv2.waitKey(0)
 
 
 if __name__ == "__main__":
