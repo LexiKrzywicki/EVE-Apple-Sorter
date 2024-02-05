@@ -1,6 +1,43 @@
 import cv2
 import numpy as np
-from time import time
+import time
+import RPi.GPIO as GPIO
+
+
+GPIO.setmode(GPIO.BCM)
+
+GPIO_TRIGGER = 18
+GPIO_ECHO = 24
+
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
+
+def distance():
+    # set Trigger to HIGH
+    GPIO.output(GPIO_TRIGGER, True)
+ 
+    # set Trigger after 0.01ms to LOW
+    time.sleep(0.00001)
+    GPIO.output(GPIO_TRIGGER, False)
+ 
+    StartTime = time.time()
+    StopTime = time.time()
+ 
+    # save StartTime
+    while GPIO.input(GPIO_ECHO) == 0:
+        StartTime = time.time()
+ 
+    # save time of arrival
+    while GPIO.input(GPIO_ECHO) == 1:
+        StopTime = time.time()
+ 
+    # time difference between start and arrival
+    TimeElapsed = StopTime - StartTime
+    # multiply with the sonic speed (34300 cm/s)
+    # and divide by 2, because there and back
+    distance = (TimeElapsed * 34300) / 2
+ 
+    return distance
 
 class AppleInfo:
     def __init__(self, orig_image, hsv, back_image, red_image, erosion_image, dilation_image, apple_shape):
@@ -80,10 +117,20 @@ class AppleInfo:
 
 
 def main():
-    time_start = int(time() * 1000)
 
-    cap = cv2.VideoCapture(2)
+    while distance() > 15.0:
+        print("Measured Distance = %.1f cm" % distance())
+        time.sleep(2)
+    
+    print("found_apple")
+    
+    time.sleep(3) #gives time for apple to roll to position
 
+    time_start = int(time.time() * 1000)
+
+    # cap = cv2.VideoCapture(2)
+    cap = cv2.VideoCapture(0) #for raspi
+ 
     # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     if not cap.isOpened():
@@ -92,28 +139,22 @@ def main():
 
     result, image = cap.read()
 
-    time_capture = int(time() * 1000)
-
-
-    # if result:
-    #     cv2.namedWindow("Resized_window", cv2.WINDOW_NORMAL)
-    #     cv2.resizeWindow("Resized_window", 640, 480)
-    #     cv2.imshow("Resized_window", image[540:1120, 300:1680])
-    #     #cv2.imshow("Resized_window", image[340:1140, 300:1680])
-    #     cv2.waitKey(0)
+    time_capture = int(time.time() * 1000)
 
     apple = AppleInfo(image, image, image, image, image, image, image)
 
     # Adjusts the brightness by adding 10 to each pixel value 
-    brightness = 2
+    # brightness = 2
     # Adjusts the contrast by scaling the pixel values by 2.3 
-    contrast = 1.3  
-    apple.orig_image = cv2.addWeighted(image, contrast, np.zeros(image.shape, image.dtype), 0, brightness) 
+    # contrast = 1.3  
+    # apple.orig_image = cv2.addWeighted(image, contrast, np.zeros(image.shape, image.dtype), 0, brightness) 
     # # Adjusts the saturation by multiplying it by 1.5 
     # apple.orig_image[:, :, 1] = apple.orig_image[:, :, 1] * 1.5
  
 
-    apple.orig_image = image[540:1120, 300:1680]
+    #apple.orig_image = image[540:1120, 300:1680]
+
+    apple.orig_image = image
 
     apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
 
@@ -131,7 +172,7 @@ def main():
 
     print("GRADE:", apple.grade())
 
-    time_end = int(time() * 1000)
+    time_end = int(time.time() * 1000)
     time_cap = time_capture - time_start
 
     time_total = time_end - time_start
@@ -139,20 +180,20 @@ def main():
     print("total time (ms): ", time_total)
     print("capture time (ms): ", time_cap)
 
-    cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Original", 640, 480)
-    cv2.imshow("Original", apple.orig_image)
-    cv2.namedWindow("No Background", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("No Background", 640, 480)
-    cv2.imshow("No Background", apple.no_back_image)
-    cv2.namedWindow("Red", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Red", 640, 480)
-    cv2.imshow("Red", apple.red_image)
-    cv2.namedWindow("Shape", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Shape", 640, 480)
-    cv2.imshow("Shape", apple.apple_shape)
+    # cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("Original", 640, 480)
+    # cv2.imshow("Original", apple.orig_image)
+    # cv2.namedWindow("No Background", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("No Background", 640, 480)
+    # cv2.imshow("No Background", apple.no_back_image)
+    # cv2.namedWindow("Red", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("Red", 640, 480)
+    # cv2.imshow("Red", apple.red_image)
+    # cv2.namedWindow("Shape", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("Shape", 640, 480)
+    # cv2.imshow("Shape", apple.apple_shape)
 
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
 
 
 if __name__ == "__main__":
