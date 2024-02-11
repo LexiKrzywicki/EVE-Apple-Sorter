@@ -1,0 +1,26 @@
+<annotation>
+	<folder>newLabeled</folder>
+	<filename>cider_apple10.png</filename>
+	<path>C:\Users\Lexi\Documents\AppleDatabase\newLabeled\cider_apple10.png</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>640</width>
+		<height>480</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>bruise</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>161</xmin>
+			<ymin>156</ymin>
+			<xmax>246</xmax>
+			<ymax>237</ymax>
+		</bndbox>
+	</object>
+</annotation>

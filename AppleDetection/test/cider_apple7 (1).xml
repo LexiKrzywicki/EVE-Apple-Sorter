@@ -1,0 +1,26 @@
+<annotation>
+	<folder>stem</folder>
+	<filename>cider_apple7 (1).png</filename>
+	<path>C:\Users\Lexi\Documents\AppleDatabase\stem\cider_apple7 (1).png</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>640</width>
+		<height>480</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>stem</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>281</xmin>
+			<ymin>203</ymin>
+			<xmax>319</xmax>
+			<ymax>224</ymax>
+		</bndbox>
+	</object>
+</annotation>

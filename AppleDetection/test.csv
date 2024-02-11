@@ -1,0 +1,35 @@
+,filename,width,height,name,xmin,ymin,xmax,ymax
+0,cider_apple1.png,640,480,bruise,200,284,271,373
+1,cider_apple102.png,640,480,bruise,363,86,484,214
+2,cider_apple103.png,640,480,puncture,430,158,463,189
+3,cider_apple107.png,640,480,bruise,248,286,308,356
+4,cider_apple110.png,640,480,bruise,294,83,396,146
+5,cider_apple114.png,640,480,cut,442,284,473,302
+6,cider_apple115.png,640,480,cut,209,326,247,349
+7,cider_apple13.png,640,480,stem,244,47,270,69
+8,cider_apple136.png,640,480,cut,368,107,392,138
+9,cider_apple139.png,640,480,cut,227,290,261,332
+10,cider_apple143.png,640,480,cut,169,226,204,306
+11,cider_apple15 (1).png,640,480,cut,393,49,411,111
+12,cider_apple15.png,640,480,bruise,334,235,472,311
+13,cider_apple22.png,640,480,bruise,184,211,277,346
+14,cider_apple25.png,640,480,cut,233,231,278,249
+15,cider_apple3 (1).png,640,480,bruise,224,330,356,447
+16,cider_apple32.png,640,480,puncture,477,193,504,260
+17,cider_apple39 (2).png,640,480,cut,405,165,462,200
+18,cider_apple39.png,640,480,stem,293,192,329,227
+19,cider_apple45.png,640,480,cut,254,165,366,235
+20,cider_apple48.png,640,480,bruise,209,333,313,416
+21,cider_apple54.png,640,480,puncture,293,376,330,402
+22,cider_apple61.png,640,480,bruise,178,164,223,219
+23,cider_apple68.png,640,480,bruise,447,190,544,304
+24,cider_apple7 (1).png,640,480,stem,281,203,319,224
+25,cider_apple86.png,640,480,puncture,382,156,422,223
+26,cider_apple9.png,640,480,bruise,378,114,455,210
+27,cider_apple92.png,640,480,bruise,532,160,571,242
+28,cider_apple93.png,640,480,puncture,324,199,354,232
+29,cider_apple97.png,640,480,bruise,178,107,248,176
+30,g1_apple4.png,640,480,stem,323,100,354,147
+31,test28.png,640,480,stem,278,47,300,81
+32,test41.png,640,480,stem,268,78,292,105
+33,test50.png,640,480,stem,286,52,316,96
