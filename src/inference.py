@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import torch
 import glob as glob
+import capture
 
 from model import create_model
 
@@ -54,6 +55,10 @@ for i in range(len(test_images)):
     # load all detection to CPU for further operations
     outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
     # carry further only if there are detected boxes
+   
+    # load all detection to CPU for further operations
+    outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+    # carry further only if there are detected boxes
     if len(outputs[0]['boxes']) != 0:
         boxes = outputs[0]['boxes'].data.numpy()
         scores = outputs[0]['scores'].data.numpy()
@@ -62,23 +67,26 @@ for i in range(len(test_images)):
         draw_boxes = boxes.copy()
         # get all the predicited class names
         pred_classes = [CLASSES[i] for i in outputs[0]['labels'].cpu().numpy()]
+
+        print(pred_classes)
         
         # draw the bounding boxes and write the class name on top of it
-        for j, box in enumerate(draw_boxes):
-            cv2.rectangle(orig_image,
-                        (int(box[0]), int(box[1])),
-                        (int(box[2]), int(box[3])),
-                        (0, 0, 255), 2)
-            cv2.putText(orig_image, pred_classes[j], 
-                        (int(box[0]), int(box[1]-5)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
-                        2, lineType=cv2.LINE_AA)
+    #     for j, box in enumerate(draw_boxes):
+    #         cv2.rectangle(orig_image,
+    #                     (int(box[0]), int(box[1])),
+    #                     (int(box[2]), int(box[3])),
+    #                     (0, 0, 255), 2)
+    #         print(pred_classes[j])
+    #         cv2.putText(orig_image, pred_classes[j], 
+    #                     (int(box[0]), int(box[1]-5)),
+    #                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
+    #                     2, lineType=cv2.LINE_AA)
 
-        cv2.imshow('Prediction', orig_image)
-        cv2.waitKey(0)
-        cv2.imwrite(f"../test_predictions/{image_name}.jpg", orig_image,)
-    print(f"Image {i+1} done...")
-    print('-'*50)
+    #     cv2.imshow('Prediction', orig_image)
+    #     cv2.waitKey(0)
+    #     cv2.imwrite(f"../test_predictions/{image_name}.jpg", orig_image,)
+    # print(f"Image {i+1} done...")
+    # print('-'*50)
 
 print('TEST PREDICTIONS COMPLETE')
 cv2.destroyAllWindows()
