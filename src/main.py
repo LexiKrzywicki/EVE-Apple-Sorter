@@ -1,15 +1,22 @@
 import cv2
 import numpy as np
 import time
-import subprocess
-import os
-import sys
-import shutil
+import serial
 
 import appleGrade
 import inference
 import capture
 
+arduino = serial.Serial(port='COM3', baudrate=9600, timeout=.1)
+time.sleep(2)
+
+
+if arduino.in_waiting > 0:
+    myData = ord(arduino.read())
+    print(myData)
+
+
+    
 
 #if apple detected by ultrasonic take picture of apple
 #run ML first
@@ -18,10 +25,10 @@ import capture
 time_start = int(time.time() * 1000)
 
 #if no surface defect, then G1 apple
-# if len(inference.pred_classes) > 0:
-#     print("Apple is G2")
-# else:
-#     print("NOW RUNNING OPENCV")
+if len(inference.pred_classes) > 0:
+    print("Apple is G2")
+else:
+    print("NOW RUNNING OPENCV")
 image = capture.cropped
 apple = appleGrade.AppleInfo(image, image, image, image, image, image, image)
 apple.orig_image = image
