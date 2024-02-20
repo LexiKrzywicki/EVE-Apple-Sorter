@@ -1,13 +1,19 @@
 import cv2
 
-cap = cv2.VideoCapture(1)  #lenovo
 
-if not cap.isOpened():
-    print("ERROR! Unable to open camera")
+def capture():
+    cap = cv2.VideoCapture(0)  #lenovo
 
-result, image = cap.read()
+    if not cap.isOpened():
+        print("ERROR! Unable to open camera")
 
-cropped = image[110:380, 0:630]
+    result, image = cap.read()
 
-# cv2.imshow('Image from Camera', cropped)
-# cv2.waitKey(0)
+    cropped = image[110:380, 0:630]
+
+    return cropped
+
+    #cv2.imwrite("image.jpg", cropped)
+
+    # cv2.imshow('Image from Camera', cropped)
+    # cv2.waitKey(0)
