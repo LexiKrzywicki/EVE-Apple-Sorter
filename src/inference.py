@@ -31,7 +31,7 @@ def inference(cap_image):
 
     # define the detection threshold...
     # ... any detection having score below this will be discarded
-    detection_threshold = 0.8
+    detection_threshold = 0.6
 
     # get the image file name for saving output later on
     #image_name = cap_image.split('\\')[-1].split('.')[0]
@@ -83,6 +83,7 @@ def inference(cap_image):
     cv2.waitKey(0)
 
     print(pred_classes)
+    #print(boxes)
 
     cv2.destroyAllWindows()
 

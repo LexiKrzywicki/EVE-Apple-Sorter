@@ -4,6 +4,7 @@ import time
 import serial
 import os
 import subprocess
+import pyfirmata
 
 import appleGrade
 import inference
@@ -14,36 +15,27 @@ time.sleep(2)
 
 state = "waiting"
 
-
-def state_machine(state):
-    match state:
-        case "waiting":
-            #print("WAITING")
-            if arduino.in_waiting > 0:
-                myData = ord(arduino.read())
-                if myData < 15:
-                    state = "capture"
-        case "capture":
-            print("CAPTURE")
-            if len(inference.inference()) > 0:
-                state = "opencv"
-            else:
-                print("G1 Apple")
-
-
 if __name__ == "__main__":
-   # stuff only to run when not called via 'import' here
     while True:
-        if arduino.in_waiting > 0: 
-            myData = ord(arduino.read())
-            print(myData)
-            if myData < 14:
-                print("applefound")
-                image = capture.capture()
-                if len(inference.inference(image)) > 0:
-                    print("GOTTEM")
-                    exit()
-        
+        while state == "waiting":
+            if arduino.in_waiting > 0: 
+                myData = ord(arduino.read())
+                print(myData)
+                if myData < 13:
+                    print("applefound")
+                    image = capture.capture()
+                    state = "pytorch"
+        while state == "pytorch":
+            predictions = inference.inference(image)
+            print("predictions: ", predictions)
+            if len(predictions) > 0:
+                print("G2 Apple Detected")
+                state = "waiting"
+            else:
+                state = "opencv"
+        while state == "opencv":
+            print("run opencv code here")
+            state = "waiting"
 
 
 #if apple detected by ultrasonic take picture of apple

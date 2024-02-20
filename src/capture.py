@@ -12,8 +12,3 @@ def capture():
     cropped = image[110:380, 0:630]
 
     return cropped
-
-    #cv2.imwrite("image.jpg", cropped)
-
-    # cv2.imshow('Image from Camera', cropped)
-    # cv2.waitKey(0)

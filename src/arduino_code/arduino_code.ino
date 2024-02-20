@@ -3,7 +3,7 @@
 const int trigPin = 9;
 const int echoPin = 10;
 long duration;
-int distanceCm;
+int distanceCm = 30;  //set to 30 to get into while loop
 
 Servo myServo;
 int pos = 0;
@@ -17,16 +17,20 @@ void setup() {
   delay(25);
 }
 void loop() {
-  //Serial.println("START");
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  duration = pulseIn(echoPin, HIGH);
-  distanceCm = duration * 0.034 / 2;
-  Serial.write(distanceCm);
-  delay(100);
+  //Serial.println("START");{
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    duration = pulseIn(echoPin, HIGH);
+    distanceCm = duration * 0.034 / 2;
+    Serial.write(distanceCm);
+    //Serial.println(distanceCm);
+    delay(100);
+  
+  //Serial.write(distanceCm);
+
   // while(distanceCm <14){
   //   //do nothing
   // }
