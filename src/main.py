@@ -18,16 +18,14 @@ while True:
     arduino.reset_output_buffer()
     while state == "waiting":
         arduino.write(b'A')
-        if arduino.read() == b'P':
+        if arduino.read() == b'Z':
             print("apple found")
             time_start = int(time.time() * 1000)
             image = capture.capture()
-            cv2.imwrite("Prediction.jpg", image)
             state = "pytorch"
             #break
         break
     while state == "pytorch":
-        print("PYTORCH")
         predictions = inference.inference(image)
         print("predictions: ", predictions)
         
@@ -54,11 +52,6 @@ while True:
         apple.apple_shape = apple.get_shape()
         print("GRADE:", apple.grade())
 
-        time_end = int(time.time() * 1000)
-
-        time_total = time_end - time_start
-        print("Time(s) =", time_total)
-
         cv2.imshow("Original", apple.no_back_image)
         cv2.waitKey(0)
         print("OPENCV COMPLETE")
@@ -68,12 +61,26 @@ while True:
     while state == "servo":
         arduino.write(b'B')
         
-        # reads 'D' when the servo is done moving
-        if arduino.read() == b'D':
-            state = "waiting"
-            arduino.reset_input_buffer()
-            arduino.reset_output_buffer()
+        # reads 'Y' when the servo is done moving
+        if arduino.read() == b'Y':
+            time_end = int(time.time() * 1000)
+
+            time_total = time_end - time_start
+            print("Time(s) =", time_total)
+            state = "outtake"
+            # arduino.reset_input_buffer()
+            # arduino.reset_output_buffer()
         break
+    
+    while state == "outtake":
+        arduino.write(b'C')
+        if arduino.read() == b'X':
+            state = "waiting"
+            print("ready for next apple")
+            # arduino.reset_input_buffer()
+            # arduino.reset_output_buffer()
+        break
+
 
     
 
