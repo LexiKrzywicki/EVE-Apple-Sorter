@@ -19,12 +19,15 @@ while True:
     while state == "waiting":
         arduino.write(b'A')
         if arduino.read() == b'P':
+            print("apple found")
             time_start = int(time.time() * 1000)
             image = capture.capture()
+            cv2.imwrite("Prediction.jpg", image)
             state = "pytorch"
             #break
         break
     while state == "pytorch":
+        print("PYTORCH")
         predictions = inference.inference(image)
         print("predictions: ", predictions)
         
@@ -36,6 +39,7 @@ while True:
             state = "opencv"
 
     while state == "opencv":
+        print("OPENCV")
         apple = appleGrade.AppleInfo(image, image, image, image, image, image, image)
         apple.orig_image = image
 

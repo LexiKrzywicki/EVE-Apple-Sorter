@@ -35,7 +35,7 @@ void loop(){
       duration = pulseIn(echoPin, HIGH);
       distanceCm = duration * 0.034 / 2;
       delay(100);   //DELAY IS NEEDED TO NOT READ 0
-      if(distanceCm < 14){
+      if(distanceCm < 14){   //my need to get an average of values
         Serial.write("P");
         //Serial.write(distanceCm);
       }
