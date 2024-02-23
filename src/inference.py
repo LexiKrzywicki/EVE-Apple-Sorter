@@ -79,12 +79,13 @@ def inference(cap_image):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
                     2, lineType=cv2.LINE_AA)
 
-    cv2.imshow('Prediction', cap_image)
-    cv2.waitKey(0)
+    #cv2.imshow('Prediction', cap_image)
+    #cv2.imwrite('Prediction.jpg', cap_image)
+    #cv2.waitKey(0)
 
-    print(pred_classes)
+    #print(pred_classes)
     #print(boxes)
 
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
 
     return pred_classes

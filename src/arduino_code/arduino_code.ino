@@ -18,41 +18,30 @@ void setup() {
 }
 void loop() {
   //Serial.println("START");{
-    digitalWrite(trigPin, LOW);
-    delayMicroseconds(2);
-    digitalWrite(trigPin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(trigPin, LOW);
-    duration = pulseIn(echoPin, HIGH);
-    distanceCm = duration * 0.034 / 2;
-    Serial.write(distanceCm);
-    //Serial.println(distanceCm);
+
+    if(Serial.availableForWrite()){
+      digitalWrite(trigPin, LOW);
+      delayMicroseconds(2);
+      digitalWrite(trigPin, HIGH);
+      delayMicroseconds(10);
+      digitalWrite(trigPin, LOW);
+      duration = pulseIn(echoPin, HIGH);
+      distanceCm = duration * 0.034 / 2;
+      Serial.write(distanceCm);
+    }
+    else{
+      //Serial.print("made it here");
+      // Serial.end();
+      // delay(100);
+      // Serial.begin(9600);
+      // delay(100);
+      if(Serial.available() >0 ){
+        delay(2000);
+        myServo.write(30);
+        delay(2000);
+        myServo.write(90);
+      }
+    }
     delay(100);
-  
-  //Serial.write(distanceCm);
-
-  // while(distanceCm <14){
-  //   //do nothing
-  // }
-
- //apple detected
-  // while(distanceCm < 14 && distanceCm > 5){
-  //   Serial.write(distanceCm);
-  //   //Serial.println("Taking image");
-  //   delay(1000);
-  //   //Serial.println("Determine apple grade");
-  //   myServo.write(30);
-  //   delay(100);
-  //   digitalWrite(trigPin, LOW);
-  //   delayMicroseconds(2);
-  //   digitalWrite(trigPin, HIGH);
-  //   delayMicroseconds(10);
-  //   digitalWrite(trigPin, LOW);
-  //   duration = pulseIn(echoPin, HIGH);
-  //   distanceCm = duration * 0.034 / 2;
-  // }
-  // //when no apple detected then the servo moves up
-  // myServo.write(90);
-  // delay(25);
   
 }

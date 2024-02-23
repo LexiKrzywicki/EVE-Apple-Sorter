@@ -11,14 +11,14 @@ once = True
 state = "waiting"
 
 while True:
+    arduino.reset_input_buffer()
+    arduino.reset_output_buffer()
     while state == "waiting":
         arduino.write(b'A')
         if arduino.read() == b'P':
-            print("applefound")
             state = "pytorch"
-            arduino.reset_input_buffer()
-            arduino.reset_output_buffer()
             break
+        break
     while state == "pytorch":
         #print("IN PYTROCH")
 
@@ -31,7 +31,6 @@ while True:
 
 
     while state == "servo":
-
         arduino.write(b'B')
         
         if arduino.read() == b'D':
