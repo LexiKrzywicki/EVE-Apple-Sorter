@@ -12,6 +12,7 @@ arduino = serial.Serial(port='COM3', baudrate=9600, timeout=.1)
 time.sleep(2)
 
 state = "waiting"
+grade = 0
 
 while True:
     arduino.reset_input_buffer()
@@ -19,20 +20,22 @@ while True:
     while state == "waiting":
         arduino.write(b'A')
         if arduino.read() == b'Z':
+            graded = 0
             print("apple found")
             time_start = int(time.time() * 1000)
             image = capture.capture()
+            imagePy = image.copy()
             state = "pytorch"
-            #break
         break
     while state == "pytorch":
-        predictions = inference.inference(image)
+        predictions, boxes = inference.inference(imagePy)
         print("predictions: ", predictions)
+        print("boxes: ", boxes)
         
-        # if there are defects
-        if len(predictions) > 0:
+        if len(boxes) > 0:        
             print("G2 Apple Detected")
-            state = "servo"
+            grade = 2
+            state = "visionServo"
         else:
             state = "opencv"
 
@@ -40,25 +43,35 @@ while True:
         print("OPENCV")
         apple = appleGrade.AppleInfo(image, image, image, image, image, image, image)
         apple.orig_image = image
+        #cv2.imwrite("OpenCVimage.jpg", apple.orig_image)
 
         apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
 
         apple.no_back_image = apple.remove_background()
 
+        cv2.imshow("no back", apple.no_back_image)
+        cv2.waitKey(0)
+
         apple.red_image = apple.get_red()
         apple.get_color_percent()
         print("Percent Red = ", apple.percent_red)
 
-        apple.apple_shape = apple.get_shape()
-        print("GRADE:", apple.grade())
+        if apple.percent_red > 60:
+            grade = 1
+            print("GRADE 1")
 
-        cv2.imshow("Original", apple.no_back_image)
-        cv2.waitKey(0)
+        else:
+            # apple.dilation()
+            # apple.erosion()
+            # apple.apple_shape = apple.get_shape()
+            grade = 2
+            print("GRADE 2")
+
         print("OPENCV COMPLETE")
+        
+        state = "visionServo"
 
-        state = "servo"
-
-    while state == "servo":
+    while state == "visionServo":
         arduino.write(b'B')
         
         # reads 'Y' when the servo is done moving
@@ -68,25 +81,23 @@ while True:
             time_total = time_end - time_start
             print("Time(s) =", time_total)
             state = "outtake"
-            # arduino.reset_input_buffer()
-            # arduino.reset_output_buffer()
         break
     
     while state == "outtake":
-        arduino.write(b'C')
-        if arduino.read() == b'X':
+        if grade == 1:
+            arduino.write(b'C')
+            if arduino.read() == b'W':
+                state = "waiting"
+                print("ready for next apple")
+                arduino.reset_input_buffer()
+                arduino.reset_output_buffer()
+            break
+        if grade == 2:
             state = "waiting"
             print("ready for next apple")
-            # arduino.reset_input_buffer()
-            # arduino.reset_output_buffer()
-        break
-
-
-    
-
-
-
-
+            arduino.reset_input_buffer()
+            arduino.reset_output_buffer()
+            break
 
 
     
