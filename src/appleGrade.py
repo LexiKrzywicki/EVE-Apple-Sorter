@@ -56,21 +56,22 @@ class AppleInfo:
         image_copy = self.no_back_image.copy()
         cv2.drawContours(image_copy, contours, -1, (0, 255, 0), 2)
         return image_copy
-
-    def erosion(self):
-        erosion_type = [cv2.MORPH_RECT, cv2.MORPH_CROSS, cv2.MORPH_ELLIPSE][self.erosion_elem]
-        element = cv2.getStructuringElement(erosion_type,
-                                            (2 * self.erosion_size + 1, 2 * self.erosion_size + 1),
-                                            (self.erosion_size, self.erosion_size))
-        cv2.erode(self.no_back_image, self.erosion_image, element)
+    
+    def erosion(self, erosionVal, input):
+        erosion_shape = 0  #MORPH_RECT
+        element = cv2.getStructuringElement(erosion_shape, (2 * erosionVal + 1, 2 * erosionVal + 1),
+                                        (erosionVal, erosionVal))
+        self.erosion_image = cv2.erode(input, element)
+        # cv2.imshow(title_erosion_window, erosion_dst)
         return self.erosion_image
 
-    def dilation(self):
-        dilation_type = [cv2.MORPH_RECT, cv2.MORPH_CROSS, cv2.MORPH_ELLIPSE][self.dilation_elem]
-        element = cv2.getStructuringElement(dilation_type,
-                                            (2 * self.dilation_size + 1, 2 * self.dilation_size + 1),
-                                            (self.dilation_size, self.dilation_size))
-        cv2.dilate(self.no_back_image, self.dilation_image, element)
+    def dilatation(self, dilationVal,  input):
+        #dilatation_size = cv.getTrackbarPos(title_trackbar_kernel_size, title_dilation_window)
+        #dilation_shape = morph_shape(cv.getTrackbarPos(title_trackbar_element_shape, title_dilation_window))
+        dilation_shape = 1 #cross 
+        element = cv2.getStructuringElement(dilation_shape, (2 * dilationVal + 1, 2 * dilationVal + 1),
+                                        (dilationVal, dilationVal))
+        self.dilation_image = cv2.dilate(input, element)
         return self.dilation_image
 
     def grade(self):

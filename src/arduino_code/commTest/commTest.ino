@@ -11,6 +11,7 @@ long durationO;
 int distanceO;
 char readByte = '0';
 bool run = false;
+bool runG1 = false;
 
 Servo myServo;
 Servo servo2;
@@ -71,6 +72,7 @@ void loop(){
             myServo.write(90);
             delay(1000);
             run = false;
+            runG1 = false;
           }
           Serial.write("Y");  //prints when the servo is done moving
           break;
@@ -86,12 +88,13 @@ void loop(){
           distanceO = durationO * 0.034 / 2;
           delay(100);   //DELAY IS NEEDED TO NOT READ 0
           Serial.println(distanceO);
-          if(distanceO < 8){  //if distance detected, servo runs
+          if(distanceO < 8 && runG1 == false){  //if distance detected, servo runs
             servo2.write(180);
             delay(1000);
             servo2.write(0);
             delay(500);
             Serial.write("W");
+            runG1 = true;
           }
           Serial.write("X");
         default:
