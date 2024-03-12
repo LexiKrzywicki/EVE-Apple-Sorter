@@ -14,6 +14,7 @@ def capture():
 
     if result:
         cropped = image[120:410, 0:630]
+        cv2.imwrite("Image.png", cropped)
 
     else:
         sys.exit("no image captured")

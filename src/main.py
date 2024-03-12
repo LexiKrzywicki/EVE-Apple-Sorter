@@ -23,6 +23,7 @@ while True:
             graded = 0
             print("apple found")
             time_start = int(time.time() * 1000)
+            time.sleep(1)
             image = capture.capture()
             imagePy = image.copy()
             state = "pytorch"
@@ -31,12 +32,13 @@ while True:
         predictions, boxes = inference.inference(imagePy)
         print("predictions: ", predictions)
         print("boxes: ", boxes)
-        
+        print(len(boxes))
         if len(boxes) > 0:        
             print("G2 Apple Detected")
             grade = 2
             state = "visionServo"
         else:
+            grade = 1
             state = "opencv"
 
     while state == "opencv":
@@ -49,8 +51,8 @@ while True:
 
         apple.no_back_image = apple.remove_background()
 
-        cv2.imshow("no back", apple.no_back_image)
-        cv2.waitKey(0)
+        #cv2.imshow("no back", apple.no_back_image)
+        #cv2.waitKey(0)
 
         apple.red_image = apple.get_red()
         apple.get_color_percent()
@@ -73,6 +75,7 @@ while True:
 
     while state == "visionServo":
         arduino.write(b'B')
+        #print("WROTE BBBBBB")
         
         # reads 'Y' when the servo is done moving
         if arduino.read() == b'Y':
