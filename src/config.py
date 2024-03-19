@@ -13,9 +13,9 @@ VALID_DIR = '../AppleDetection/test'
 
 # classes: 0 index is reserved for background
 CLASSES = [
-    'background', 'bruise', 'cut', 'puncture', 'stem'
+    'background', 'bruise', 'cut', 'puncture', 'stem', 'arm'
 ]
-NUM_CLASSES = 5
+NUM_CLASSES = 6
 
 # CLASSES = [
 #     'background', 'G1', 'cider'

@@ -12,7 +12,7 @@ def inference(cap_image):
     # set the computation device
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # load the model and the trained weights
-    model = create_model(num_classes=5).to(device)
+    model = create_model(num_classes=6).to(device)
     # model = create_model(num_classes=3).to(device)
     model.load_state_dict(torch.load(
         '../outputs/model100.pth', map_location=device
@@ -26,7 +26,7 @@ def inference(cap_image):
 
     # classes: 0 index is reserved for background
     CLASSES = [
-        'background', 'bruise', 'cut', 'puncture', 'stem'
+        'background', 'bruise', 'cut', 'puncture', 'stem', 'arm'
     ]
 
     # define the detection threshold...
@@ -88,7 +88,7 @@ def inference(cap_image):
 
     if len(pred_classes) > 0:
         for s in pred_classes:
-            if s == 'stem':
+            if s == 'stem' or s == 'arm':
                 pred_classes.remove(s)  #removes stem from list
 
     #cv2.destroyAllWindows()

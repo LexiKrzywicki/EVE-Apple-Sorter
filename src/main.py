@@ -55,6 +55,7 @@ while True:
         #cv2.waitKey(0)
 
         apple.red_image = apple.get_red()
+        #cv2.write --the red image
         apple.get_color_percent()
         print("Percent Red = ", apple.percent_red)
 
