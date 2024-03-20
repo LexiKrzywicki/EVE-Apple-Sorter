@@ -8,7 +8,7 @@ import inference
 import capture
 
 
-arduino = serial.Serial(port='COM3', baudrate=9600, timeout=.1)
+arduino = serial.Serial(port='COM5', baudrate=9600, timeout=.1)
 time.sleep(2)
 
 state = "waiting"
@@ -30,9 +30,8 @@ while True:
         break
     while state == "pytorch":
         predictions, boxes = inference.inference(imagePy)
-        print("predictions: ", predictions)
-        print("boxes: ", boxes)
-        print(len(boxes))
+        #print("predictions: ", predictions)
+        print("surface defects: ", len(boxes))
         if len(boxes) > 0:        
             print("G2 Apple Detected")
             grade = 2
@@ -42,7 +41,7 @@ while True:
             state = "opencv"
 
     while state == "opencv":
-        print("OPENCV")
+        print("running opencv")
         apple = appleGrade.AppleInfo(image, image, image, image, image, image, image)
         apple.orig_image = image
         #cv2.imwrite("OpenCVimage.jpg", apple.orig_image)
@@ -70,7 +69,7 @@ while True:
             grade = 2
             print("GRADE 2")
 
-        print("OPENCV COMPLETE")
+        #print("OPENCV COMPLETE")
         
         state = "visionServo"
 
@@ -83,7 +82,7 @@ while True:
             time_end = int(time.time() * 1000)
 
             time_total = time_end - time_start
-            print("Time(s) =", time_total)
+            #print("Time(s) =", time_total)
             state = "outtake"
         break
     

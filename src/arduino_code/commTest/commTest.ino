@@ -1,4 +1,4 @@
-//this is G1 arduino
+//this is G1 arduino (right side)
 #include <Servo.h>
 
 #define enA 11
@@ -29,7 +29,7 @@ void setup(){
   outServo.attach(2);
   pinMode(trigPinO, OUTPUT);
   pinMode(echoPinO, INPUT);
-  visionServo.write(95);
+  visionServo.write(10);
   delay(25);
   outServo.write(100);
   delay(25);
@@ -62,7 +62,7 @@ void loop(){
           durationV = pulseIn(echoPinV, HIGH);
           distanceV = durationV * 0.034 / 2;
           delay(100);   //DELAY IS NEEDED TO NOT READ 0
-          if(distanceV <= 13 && distanceV > 5){   //may need to get an average of values
+          if(distanceV <= 14 && distanceV > 5){   //may need to get an average of values
             Serial.write("Z");
             //noInterrupts();  //disable interrupts for motor to start running again
             //digitalWrite(in1, LOW);  //may need to change directions
@@ -75,7 +75,7 @@ void loop(){
           if(run){   //makes sure this only runs once
             visionServo.write(150);  //right vision servo
             delay(2000);
-            visionServo.write(90);
+            visionServo.write(10);
             delay(1000);
             run = false;
             runG1 = true;
