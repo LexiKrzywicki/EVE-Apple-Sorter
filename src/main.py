@@ -19,6 +19,7 @@ while True:
     arduino.reset_output_buffer()
     while state == "waiting":
         arduino.write(b'A')
+        print("WROTE A")
         if arduino.read() == b'Z':
             graded = 0
             print("apple found")
@@ -85,22 +86,42 @@ while True:
             #print("Time(s) =", time_total)
             state = "outtake"
         break
-    
+
+
     while state == "outtake":
         if grade == 1:
             arduino.write(b'C')
             if arduino.read() == b'W':
-                state = "waiting"
-                print("ready for next apple")
-                arduino.reset_input_buffer()
-                arduino.reset_output_buffer()
+                state = "checkLift"
             break
-        if grade == 2:
+        else:
+            state = "checkLift"
+
+    while state == "checkLift":
+        arduino.write(b'D')
+        if arduino.read() == b'U':
             state = "waiting"
             print("ready for next apple")
             arduino.reset_input_buffer()
             arduino.reset_output_buffer()
-            break
+    
+    # while state == "outtake":
+    #     if grade == 1:
+    #         arduino.write(b'C')
+    #         if arduino.read() == b'W':
+    #             state = "waiting"
+    #             print("ready for next apple")
+    #             arduino.reset_input_buffer()
+    #             arduino.reset_output_buffer()
+    #         break
+    #     if grade == 2:
+    #         arduino.write(b'D')
+    #         if arduino.read() == b'U':
+    #             state = "waiting"
+    #             print("ready for next apple")
+    #             arduino.reset_input_buffer()
+    #             arduino.reset_output_buffer()
+    #         break
 
 
     
