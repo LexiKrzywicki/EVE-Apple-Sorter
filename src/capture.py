@@ -1,7 +1,7 @@
 import cv2
 import sys
 
-cap = cv2.VideoCapture(1, cv2.CAP_MSMF)  #lenovo
+cap = cv2.VideoCapture(0, cv2.CAP_MSMF)  #lenovo
 
 def capture():
     #cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
