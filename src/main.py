@@ -19,9 +19,10 @@ while True:
     arduino.reset_output_buffer()
     while state == "waiting":
         arduino.write(b'A')
-        print("WROTE A")
+        #print("made it to waiting")
         if arduino.read() == b'Z':
-            graded = 0
+            print("read Z")
+            grade = 0
             print("apple found")
             time_start = int(time.time() * 1000)
             time.sleep(1)
@@ -32,7 +33,7 @@ while True:
     while state == "pytorch":
         predictions, boxes = inference.inference(imagePy)
         #print("predictions: ", predictions)
-        print("surface defects: ", len(boxes))
+        print("surface defects: ", predictions)
         if len(boxes) > 0:        
             print("G2 Apple Detected")
             grade = 2
@@ -46,7 +47,6 @@ while True:
         apple = appleGrade.AppleInfo(image, image, image, image, image, image, image)
         apple.orig_image = image
         #cv2.imwrite("OpenCVimage.jpg", apple.orig_image)
-
         apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
 
         apple.no_back_image = apple.remove_background()
@@ -76,14 +76,13 @@ while True:
 
     while state == "visionServo":
         arduino.write(b'B')
-        #print("WROTE BBBBBB")
         
         # reads 'Y' when the servo is done moving
         if arduino.read() == b'Y':
             time_end = int(time.time() * 1000)
 
             time_total = time_end - time_start
-            #print("Time(s) =", time_total)
+            print("Time(s) =", time_total)
             state = "outtake"
         break
 
@@ -92,18 +91,28 @@ while True:
         if grade == 1:
             arduino.write(b'C')
             if arduino.read() == b'W':
-                state = "checkLift"
+                state = "waiting"
+                print("ready for next apple")  
+                arduino.reset_input_buffer()
+                arduino.reset_output_buffer()
             break
-        else:
-            state = "checkLift"
+        if grade == 2:
+            arduino.write(b'D')
+            if arduino.read() == b'V':
+                state = "waiting"
+                print("ready for next apple")  
+                arduino.reset_input_buffer()
+                arduino.reset_output_buffer()
+            break
 
-    while state == "checkLift":
-        arduino.write(b'D')
-        if arduino.read() == b'U':
-            state = "waiting"
-            print("ready for next apple")
-            arduino.reset_input_buffer()
-            arduino.reset_output_buffer()
+    # while state == "checkLift":
+    #     arduino.write(b'E')
+    #     if arduino.read() == b'U':
+    #         state = "waiting"
+    #         print("ready for next apple")  
+    #         arduino.reset_input_buffer()
+    #         arduino.reset_output_buffer()
+    #         break
     
     # while state == "outtake":
     #     if grade == 1:

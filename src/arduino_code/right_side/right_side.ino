@@ -9,8 +9,8 @@ int in4 = 12;
 int enB = 13;
 
 //for lifter
-int topSwitch = 29;
-int bttmSwitch = 31;
+int topSwitch = 21;
+int bttmSwitch = 20;
 
 //ultrasonics
 const int trigPinV = 6;
@@ -50,13 +50,13 @@ void setup() {
   //lifter motor
   pinMode(topSwitch, INPUT_PULLUP);
   pinMode(bttmSwitch, INPUT_PULLUP);
-  attachInterrupt(29, stop, CHANGE);//Initialize the intterrupt pin (Arduino digital pin 2)
-  attachInterrupt(31, stop, CHANGE);//Initialize the intterrupt pin (Arduino digital pin 2)
+  attachInterrupt(digitalPinToInterrupt(topSwitch), goDown, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitch), goUp, CHANGE);
   pinMode(enB, INPUT);
   pinMode(in3, INPUT);
   pinMode(in4, INPUT);
-  //digitalWrite(in3, HIGH);
-  //digitalWrite(in4, LOW);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
   analogWrite(enB, 255);
 
   //converyor motor
@@ -71,10 +71,33 @@ void setup() {
 
 }
 
-void stop(){
-  digitalWrite(in3, LOW);
+void enableLifterInt(){
+  attachInterrupt(digitalPinToInterrupt(topSwitch), goDown, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitch), goUp, CHANGE);
+}
+
+void disableLifterInt(){
+  detachInterrupt(digitalPinToInterrupt(topSwitch));
+  detachInterrupt(digitalPinToInterrupt(bttmSwitch));
+}
+
+// void stop(){
+//   digitalWrite(in3, LOW);
+//   digitalWrite(in4, LOW);
+//   detachInterrupt(digitalPinToInterrupt(topSwitch));
+//   detachInterrupt(digitalPinToInterrupt(bttmSwitch));
+// }
+
+void goUp(){
+  delay(500);
+  digitalWrite(in3, HIGH);
   digitalWrite(in4, LOW);
-  noInterrupts();
+}
+
+void goDown(){
+  delay(500);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
 }
 
 void loop(){
@@ -84,13 +107,6 @@ void loop(){
 
       switch(readByte){
         case 'A':
-        //run the lifter down
-        if(once){
-        digitalWrite(in3, LOW);
-        digitalWrite(in4, HIGH);
-        once = false;
-        delay(100);
-        }
 
           run = true;   // used in vision servo case
           digitalWrite(trigPinV, LOW);
@@ -101,22 +117,16 @@ void loop(){
           durationV = pulseIn(echoPinV, HIGH);
           distanceV = durationV * 0.034 / 2;
           delay(100);   //DELAY IS NEEDED TO NOT READ 0
-          interrupts();
           if(distanceV <= 14 && distanceV > 5){   //may need to get an average of values
+            delay(500);
             Serial.write("Z");
             once = true;
           }
           break;
         case 'B':    // vision servo
           if(run){
-            //run lifter up
-            digitalWrite(in3, HIGH);
-            digitalWrite(in4, LOW);
-            delay(100);
             visionServo.write(150);  //move right vision servo
             delay(2000);
-            // noInterrupts();
-            interrupts();
 
             //move servo back to original position for next apple
             visionServo.write(10);
@@ -155,11 +165,7 @@ void loop(){
         case 'D':  //for g2
           outServo.write(100);
           delay(500);
-
-          if(digitalRead(topSwitch)){
-            stop();
-            Serial.write("U");
-          }
+          Serial.write("V");
         break;
 
         default:
