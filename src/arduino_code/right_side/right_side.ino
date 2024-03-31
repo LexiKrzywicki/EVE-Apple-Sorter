@@ -1,3 +1,5 @@
+//right side - L1
+
 #include <Servo.h>
 
 //motor driver
@@ -17,11 +19,12 @@ const int trigPinV = 6;
 const int echoPinV = 5;
 const int trigPinO = 4;
 const int echoPinO = 3;
-
 long durationV;
 int distanceV = 30;
 long durationO;
 int distanceO;
+
+
 char readByte = '0';
 bool run = false;
 bool runG1 = false;  
@@ -44,8 +47,6 @@ void setup() {
   outServo.write(100);
   delay(25);
   Serial.begin(9600);
-  
-
 
   //lifter motor
   pinMode(topSwitch, INPUT_PULLUP);

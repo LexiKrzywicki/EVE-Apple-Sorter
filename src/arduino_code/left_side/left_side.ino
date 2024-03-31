@@ -1,90 +1,115 @@
-//left side
+//left side - L2
 
 #include <Servo.h>
 
-// #define enA 11
-// #define in1 12
-// #define in2 13
 
-// #define enB 6
-// #define in3 4
-// #define in4 5
+int topSwitchIV = 21;
+int bttmSwitchIV = 20; 
 
-int topSwitch = 29;
-int bttmSwitch = 31;
-int enB = 13;
-int in3 = 12;
-int in4 = 11;
+int topSwitchRightLift = 18;
+int bttmSwitchRightLift = 19;
 
-int motorPWM = 255;
-bool goingUp = true;
-bool goingDown = false;
+int topSwitchLeftLift = 3;
+int bttmSwitchLeftLift = 2;
 
-const int trigPinV = 9;
-const int echoPinV = 8;
+//motor driver 1 - left and right lifters
+int enA_1 = 8;   //right
+int in1_1 = 9;   
+int in2_1 = 10;
+int in3_1 = 11;  //left
+int in4_1 = 12;
+int enB_1 = 13;
 
-long duration;
-int distance;
+//motor driver 2 - conveyor and I->V lifter
+int enA_2 = 35;  //conveyor
+int in1_2 = 37;
+int in2_2 = 39;
+int in3_2 = 41;   //lift
+int in4_2 = 43;
+int enB_2 = 45;
 
-Servo visionServo;
-Servo outServo;
 
-void setup() {
-  // put your setup code here, to run once:
-  // pinMode(trigPinV, OUTPUT);
-  // pinMode(echoPinV, INPUT);
-  // Serial.begin(9600);
-  // visionServo.attach(7);
-  // visionServo.write(90);
 
-  // outServo.attach(2);
-  // outServo.write(10);
+void setup(){
+  // pinMode(topSwitchIV, INPUT_PULLUP);
+  // pinMode(bttmSwitchIV, INPUT_PULLUP);
+  // attachInterrupt(digitalPinToInterrupt(topSwitchIV), goDownIV, CHANGE);
+  // attachInterrupt(digitalPinToInterrupt(bttmSwitchIV), goUpIV, CHANGE);
+  // pinMode(enB_1, INPUT);
+  // pinMode(in3_1, INPUT);
+  // pinMode(in4_1, INPUT);
+  // // digitalWrite(in3_1, HIGH);
+  // // digitalWrite(in4_1, LOW);
+  // analogWrite(enB_1, 255);
 
-  // pinMode(enA, OUTPUT);
-  // pinMode(in1, OUTPUT);
-  // pinMode(in2, OUTPUT);
-  // digitalWrite(in1,LOW);
-  // digitalWrite(in2, HIGH);
-  // analogWrite(enA, 255); 
+  //converyor motor
+  pinMode(enA_2, OUTPUT);
+  pinMode(in1_2, OUTPUT);
+  pinMode(in2_2, OUTPUT);
+  digitalWrite(in1_2, HIGH);
+  digitalWrite(in2_2, LOW);
+  analogWrite(enA_2, 255);
 
-  // pinMode(enB, OUTPUT);
-  // pinMode(in3, OUTPUT);
-  // pinMode(in4, OUTPUT);
-  // digitalWrite(in3,LOW);
-  // digitalWrite(in4, HIGH);
-  // analogWrite(enB, 255); 
+  //right lift
+  pinMode(topSwitchRightLift, INPUT_PULLUP);
+  pinMode(bttmSwitchRightLift, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(topSwitchRightLift), goDownRight, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchRightLift), goUpRight, CHANGE);
+  pinMode(enA_1, INPUT);
+  pinMode(in1_1, INPUT);
+  pinMode(in2_1, INPUT);
+  digitalWrite(in1_1, HIGH);
+  digitalWrite(in2_1, LOW);
+  analogWrite(enA_1, 255);
 
-  initLifter();
+  //left lift
+  pinMode(topSwitchLeftLift, INPUT_PULLUP);
+  pinMode(bttmSwitchLeftLift, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(topSwitchLeftLift), goDownLeft, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), goUpLeft, CHANGE);
+  pinMode(enB_1, INPUT);
+  pinMode(in3_1, INPUT);
+  pinMode(in4_1, INPUT);
+  digitalWrite(in3_1, LOW);
+  digitalWrite(in4_1, HIGH);
+  analogWrite(enB_1, 255);
 
-  delay(100);
+
+  delay(1000);
+}
+
+void loop(){
 
 }
 
-void initLifter(){
-  pinMode(topSwitch, INPUT_PULLUP);
-  pinMode(bttmSwitch, INPUT_PULLUP);
-  pinMode(enB, INPUT);
-  pinMode(in3, INPUT);
-  pinMode(in4, INPUT);  
 
-  digitalWrite(enB, motorPWM);
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, HIGH);
+void goUpIV(){
+  digitalWrite(in3_2, HIGH);
+  digitalWrite(in4_2, LOW);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  if(digitalRead(bttmSwitch) && goingDown){
-    Serial.println("bttm");
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);  
-    goingUp = true; goingDown = false;  
-  }
-  // lifter is going up and it triggers the switch for the top
-  if(digitalRead(topSwitch) && goingUp){
-    Serial.println("top");
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
-    goingUp = false; goingDown = true;
-  }
+void goDownIV(){
+  digitalWrite(in3_2, LOW);
+  digitalWrite(in4_2, HIGH);
 }
+
+void goUpRight(){
+  digitalWrite(in1_1, HIGH);
+  digitalWrite(in2_1, LOW);
+}
+
+void goDownRight(){
+  digitalWrite(in1_1, LOW);
+  digitalWrite(in2_1, HIGH);
+}
+
+void goUpLeft(){
+  digitalWrite(in3_1, HIGH);
+  digitalWrite(in4_1, LOW);
+}
+
+void goDownLeft(){
+  digitalWrite(in3_1, LOW);
+  digitalWrite(in4_1, HIGH);
+}
+
