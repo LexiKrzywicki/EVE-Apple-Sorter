@@ -25,10 +25,6 @@ CLASSES = [
     'background', 'bruise', 'cut', 'puncture', 'stem', 'arm'
 ]
 
-# CLASSES = [
-#     'background', 'G1', 'cider'
-# ]
-
 # define the detection threshold...
 # ... any detection having score below this will be discarded
 detection_threshold = 0.8
@@ -53,14 +49,39 @@ for i in range(len(test_images)):
     
     # load all detection to CPU for further operations
     outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+    
+    print("outputs: ", outputs)
+
     # carry further only if there are detected boxes
     if len(outputs[0]['boxes']) != 0:
+
         boxes = outputs[0]['boxes'].data.numpy()
         scores = outputs[0]['scores'].data.numpy()
+        label = outputs[0]['labels'].data.numpy()
+
+        #removes arm and stem from list
+        count = 0
+        for i in label:
+            if i == 5 or i == 4:
+                label = np.delete(label, count, axis=0)
+                boxes = np.delete(boxes, count, axis=0)
+                scores = np.delete(scores, count, axis=0)
+            count = count + 1
+
+        print("boxes: ", boxes)
+        print("scores: ", scores)
+        print("label: ", label)
+
         # filter out boxes according to `detection_threshold`
         boxes = boxes[scores >= detection_threshold].astype(np.int32)
+
+        print("newBoxes: ", boxes)
+        print("newList: ", label)
+
+
         draw_boxes = boxes.copy()
         # get all the predicited class names
+        #pred_classes = [CLASSES[i] for i in outputs[0]['labels'].cpu().numpy()]
         pred_classes = [CLASSES[i] for i in outputs[0]['labels'].cpu().numpy()]
         
         # draw the bounding boxes and write the class name on top of it

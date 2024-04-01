@@ -8,8 +8,7 @@ import inference
 import capture
 
 
-arduino = serial.Serial(port='COM5', baudrate=9600, timeout=.1)  #right - L1
-
+arduino = serial.Serial(port='COM6', baudrate=9600, timeout=.1)  #Left - L2
 time.sleep(2)
 
 state = "waiting"
@@ -22,7 +21,6 @@ while True:
         arduino.write(b'A')
         #print("made it to waiting")
         if arduino.read() == b'Z':
-            print("read Z")
             grade = 0
             print("apple found")
             time_start = int(time.time() * 1000)
@@ -88,7 +86,7 @@ while True:
 
 
     while state == "outtake":
-        if grade == 2:
+        if grade == 1:
             arduino.write(b'C')
             if arduino.read() == b'W':
                 state = "waiting"
@@ -96,7 +94,7 @@ while True:
                 arduino.reset_input_buffer()
                 arduino.reset_output_buffer()
             break
-        if grade == 1:
+        if grade == 2:
             arduino.write(b'D')
             if arduino.read() == b'V':
                 state = "waiting"

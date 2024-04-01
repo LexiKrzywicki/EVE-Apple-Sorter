@@ -52,21 +52,29 @@ def inference(cap_image):
     with torch.no_grad():
         outputs = model(image)
 
-    #remove this
     # load all detection to CPU for further operations
     outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
-
 
     # carry further only if there are detected boxes
     # if len(outputs['boxes']) != 0:
     boxes = outputs[0]['boxes'].data.numpy()
     scores = outputs[0]['scores'].data.numpy()
+    label = outputs[0]['label'].data.numpy()
+
+    #removes arm and stem from list
+    count = 0
+    for i in label:
+        if i == 5 or i == 4:
+            label = np.delete(label, count, axis=0)
+            boxes = np.delete(boxes, count, axis=0)
+            scores = np.delete(scores, count, axis=0)
+        count = count + 1
+
     # # filter out boxes according to `detection_threshold`
     boxes = boxes[scores >= detection_threshold].astype(np.int32)
     draw_boxes = boxes.copy()
     # get all the predicited class names
     pred_classes = [CLASSES[i] for i in outputs[0]['labels'].cpu().numpy()]
-
 
     # draw the bounding boxes and write the class name on top of it
     for j, box in enumerate(draw_boxes):
@@ -93,4 +101,4 @@ def inference(cap_image):
 
     #cv2.destroyAllWindows()
 
-    return pred_classes, boxes
+    return boxes
