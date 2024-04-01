@@ -153,7 +153,7 @@ void loop(){
           distanceO = durationO * 0.034 / 2;
           delay(100);   //DELAY IS NEEDED TO NOT READ 0
           Serial.println(distanceO);
-          if(distanceO == 12 && runG1){  //if distance detected, servo runs
+          if(distanceO <= 12 && runG1){  //if distance detected, servo runs
             outServo.write(0);
             delay(2000);
             outServo.write(100);
