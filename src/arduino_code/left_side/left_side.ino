@@ -40,7 +40,7 @@ int enB_2 = 45;
 
 char readByte = '0';
 bool run = false;
-bool runG1 = false;  
+bool runServo = false;  
 bool once = true;
 
 bool upRight = false;
@@ -61,7 +61,7 @@ void setup(){
   pinMode(echoPinO, INPUT);
   visionServo.write(100);
   delay(25);
-  outServo.write(35);
+  outServo.write(53);
   delay(25);
   Serial.begin(9600);
 
@@ -95,10 +95,10 @@ void setup(){
   pinMode(enA_1, INPUT);
   pinMode(in1_1, INPUT);
   pinMode(in2_1, INPUT);
-  digitalWrite(in1_1, LOW);
-  digitalWrite(in2_1, HIGH);
-  upRight = false;
-  downRight = true;
+  digitalWrite(in1_1, HIGH);
+  digitalWrite(in2_1, LOW);
+  upRight = true;
+  downRight = false;
   analogWrite(enA_1, 255);
 
   //left lift
@@ -123,7 +123,6 @@ if(Serial.available()){
 
       switch(readByte){
         case 'A':
-          attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
           run = true;   // used in vision servo case
           digitalWrite(trigPinV, LOW);
           delayMicroseconds(2);
@@ -133,7 +132,7 @@ if(Serial.available()){
           durationV = pulseIn(echoPinV, HIGH);
           distanceV = durationV * 0.034 / 2;
           delay(100);   //DELAY IS NEEDED TO NOT READ 0
-          if(distanceV <= 13 && distanceV > 5){   //may need to get an average of values
+          if(distanceV <= 14 && distanceV > 5){   //may need to get an average of values
             delay(500);
             Serial.write("Z");
             once = true;
@@ -145,15 +144,15 @@ if(Serial.available()){
             delay(2000);
 
             //move servo back to original position for next apple
-            visionServo.write(125);
+            visionServo.write(100);
             delay(1000);
             run = false;
-            runG1 = true;
+            runServo = true;
             Serial.write("Y");
           }
           break;
         case 'C':  //for G2servo
-        //180 is up to the left this should be the end pos
+      /180 is up to the left this should be the end pos
         //should start at 0
         if(once){
           outServo.write(35);
@@ -168,18 +167,19 @@ if(Serial.available()){
           distanceO = durationO * 0.034 / 2;
           delay(100);   //DELAY IS NEEDED TO NOT READ 0
           Serial.println(distanceO);
-          if(distanceO <= 18 && runG1){  //if distance detected, servo runs
+          if(distanceO <= 12 && runServo){  //if distance detected, servo runs
             outServo.write(120);
-            delay(2000);
-            outServo.write(35);
-            delay(500);
-            Serial.write("W");
-            runG1 = false;
+            delay(1000);
+            outServo.write(53);
+            delay(1000);
+            
+            runServo = false;
             once = true;
 
             //raise the lift
             digitalWrite(in3_1, HIGH);
             digitalWrite(in4_1, LOW);
+            Serial.write("W");
           }
         break;
         case 'D':  //for g1
@@ -210,8 +210,8 @@ void goDownIV(){
   if(upIV){
     digitalWrite(in3_2, LOW);
     digitalWrite(in4_2, HIGH);
-    downIV = false;
-    upIV = true;
+    downIV = true;
+    upIV = false;
   } 
 
 }
@@ -246,5 +246,7 @@ void stop(){
 void goDownLeft(){
   digitalWrite(in3_1, LOW);
   digitalWrite(in4_1, HIGH);
+
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
 }
 

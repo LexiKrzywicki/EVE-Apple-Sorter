@@ -107,9 +107,6 @@ void loop(){
             Serial.write("W");
             runG1 = false;
             once = true;
-            //noInterrupts();
-            //digitalWrite(in1, HIGH);  //used to run the motor up not sure about direction
-            //digitalWrite(in2, LOW);
           }
           //Serial.write("X");
         case 'D':  //for g2

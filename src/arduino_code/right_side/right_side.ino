@@ -49,16 +49,16 @@ void setup() {
   Serial.begin(9600);
 
   //lifter motor
-  pinMode(topSwitch, INPUT_PULLUP);
-  pinMode(bttmSwitch, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(topSwitch), goDown, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(bttmSwitch), goUp, CHANGE);
-  pinMode(enB, INPUT);
-  pinMode(in3, INPUT);
-  pinMode(in4, INPUT);
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
-  analogWrite(enB, 255);
+  // pinMode(topSwitch, INPUT_PULLUP);
+  // pinMode(bttmSwitch, INPUT_PULLUP);
+  // attachInterrupt(digitalPinToInterrupt(topSwitch), goDown, CHANGE);
+  // attachInterrupt(digitalPinToInterrupt(bttmSwitch), goUp, CHANGE);
+  // pinMode(enB, INPUT);
+  // pinMode(in3, INPUT);
+  // pinMode(in4, INPUT);
+  // digitalWrite(in3, LOW);
+  // digitalWrite(in4, HIGH);
+  // analogWrite(enB, 255);
 
   //converyor motor
   pinMode(enA, OUTPUT);
