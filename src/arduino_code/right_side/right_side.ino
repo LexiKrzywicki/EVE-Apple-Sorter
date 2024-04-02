@@ -42,7 +42,7 @@ void setup() {
   outServo.attach(2);
   pinMode(trigPinO, OUTPUT);
   pinMode(echoPinO, INPUT);
-  visionServo.write(10);
+  visionServo.write(60);
   delay(25);
   outServo.write(100);
   delay(25);

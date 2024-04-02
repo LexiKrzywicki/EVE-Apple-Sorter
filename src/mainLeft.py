@@ -49,10 +49,14 @@ while True:
 
         apple.no_back_image = apple.remove_background()
 
+        cv2.imwrite("No_Background.png", apple.no_back_image)
+
         #cv2.imshow("no back", apple.no_back_image)
         #cv2.waitKey(0)
 
         apple.red_image = apple.get_red()
+
+        cv2.imwrite("Red_Percentage.png", apple.red_image)
         #cv2.write --the red image
         apple.get_color_percent()
         print("Percent Red = ", apple.percent_red)
@@ -86,7 +90,7 @@ while True:
 
 
     while state == "outtake":
-        if grade == 1:
+        if grade == 2:
             arduino.write(b'C')
             if arduino.read() == b'W':
                 state = "waiting"
@@ -94,7 +98,7 @@ while True:
                 arduino.reset_input_buffer()
                 arduino.reset_output_buffer()
             break
-        if grade == 2:
+        if grade == 1:
             arduino.write(b'D')
             if arduino.read() == b'V':
                 state = "waiting"

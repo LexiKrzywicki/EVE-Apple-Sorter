@@ -59,16 +59,17 @@ def inference(cap_image):
     # if len(outputs['boxes']) != 0:
     boxes = outputs[0]['boxes'].data.numpy()
     scores = outputs[0]['scores'].data.numpy()
-    label = outputs[0]['label'].data.numpy()
+    label = outputs[0]['labels'].data.numpy()
 
     #removes arm and stem from list
-    count = 0
-    for i in label:
-        if i == 5 or i == 4:
-            label = np.delete(label, count, axis=0)
-            boxes = np.delete(boxes, count, axis=0)
-            scores = np.delete(scores, count, axis=0)
-        count = count + 1
+    if boxes.size > 0:
+        count = 0
+        for i in label:
+            if i == 5 or i == 4:
+                label = np.delete(label, count, axis=0)
+                boxes = np.delete(boxes, count, axis=0)
+                scores = np.delete(scores, count, axis=0)
+            count = count + 1
 
     # # filter out boxes according to `detection_threshold`
     boxes = boxes[scores >= detection_threshold].astype(np.int32)
