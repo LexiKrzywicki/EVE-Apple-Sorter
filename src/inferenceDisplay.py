@@ -27,7 +27,7 @@ CLASSES = [
 
 # define the detection threshold...
 # ... any detection having score below this will be discarded
-detection_threshold = 0.8
+detection_threshold = 0.25
 
 for i in range(len(test_images)):
     # get the image file name for saving output later on

@@ -61,7 +61,7 @@ void setup(){
   pinMode(echoPinO, INPUT);
   visionServo.write(100);
   delay(25);
-  outServo.write(53);
+  outServo.write(65);
   delay(25);
   Serial.begin(9600);
 
@@ -152,10 +152,10 @@ if(Serial.available()){
           }
           break;
         case 'C':  //for G2servo
-      /180 is up to the left this should be the end pos
+      //180 is up to the left this should be the end pos
         //should start at 0
         if(once){
-          outServo.write(35);
+          outServo.write(65);
           once = false;
         }
           digitalWrite(trigPinO, LOW);
@@ -170,7 +170,7 @@ if(Serial.available()){
           if(distanceO <= 12 && runServo){  //if distance detected, servo runs
             outServo.write(120);
             delay(1000);
-            outServo.write(53);
+            outServo.write(65);
             delay(1000);
             
             runServo = false;

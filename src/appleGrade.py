@@ -26,7 +26,7 @@ class AppleInfo:
 
     def remove_background(self):
         #img_back = cv2.inRange(self.hsv, np.array([0, 150, 50]), np.array([35, 255, 255]))
-        img_back = cv2.inRange(self.hsv, np.array([0, 112, 0]), np.array([35, 255, 255]))
+        img_back = cv2.inRange(self.hsv, np.array([0, 112, 0]), np.array([40, 255, 255]))
         img_back1 = cv2.inRange(self.hsv, np.array([160, 112, 0]), np.array([180, 255, 255]))
         full = img_back + img_back1
         self.total_pixels = cv2.countNonZero(full)
@@ -36,10 +36,11 @@ class AppleInfo:
 
     def get_red(self):
         thres = cv2.inRange(cv2.cvtColor(self.no_back_image, cv2.COLOR_BGR2HSV),
-                            np.array([0, 150, 100]), np.array([13, 255, 255]))
+                            np.array([0, 150, 100]), np.array([10, 255, 255]))
         final_red = cv2.bitwise_and(self.no_back_image, self.no_back_image, mask=thres)
         self.red_pixels = cv2.countNonZero(thres)
         self.red_image = cv2.cvtColor(final_red, cv2.COLOR_HSV2BGR)
+        #self.red_image = cv2.cvtColor(self.red_image, cv2.COLOR_BGR2HSV)
         #print(self.red_pixels)
         return self.red_image
 
@@ -82,60 +83,66 @@ class AppleInfo:
         else:
             return "Cider"
 
-# # def main():
 
-# #     # time_start = int(time.time() * 1000)
+#uncomment when running only appleGrade.py
+# def main():
 
-# #     # # cap = cv2.VideoCapture(2)
+#     # time_start = int(time.time() * 1000)
 
-# #     # result, image = cap.read()
+#     # # cap = cv2.VideoCapture(2)
 
-# #     image = cv2.imread("Prediction.png")
+#     # result, image = cap.read()
 
-
-# #     time_capture = int(time.time() * 1000)
-
-# #     apple = AppleInfo(image, image, image, image, image, image, image)
-
-# #     apple.orig_image = image
-
-# #     apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
-
-# #     apple.no_back_image = apple.remove_background()
-
-# #     #apple.red_image = apple.get_red()
-
-# #     # apple.get_color_percent()
-# #     # print("Percent Red = ", apple.percent_red)
-# #     kernel = np.ones((5, 5), np.uint8) 
-# #     img_erosion = cv2.erode(apple.no_back_image, kernel, iterations=1) 
-# #     img_dilation = cv2.dilate(img_erosion, kernel, iterations=1)
-
-# #     #apple.erosion()
-# #     cv2.imshow("original", apple.orig_image)
-# #     cv2.imshow("erosion", img_erosion)
-# #     cv2.imshow("dilation", img_dilation)
-# #     #cv2.imshow("no back image", apple.no_back_image)
-# #     #cv2.imshow("eroded", apple.erosion_image)
-
-# #     cv2.waitKey(0)
-# #     #apple.dilation()
+#     image = cv2.imread("Image2.png")
 
 
-# #     # apple.apple_shape = apple.get_shape()
+#     time_capture = int(time.time() * 1000)
 
-# #     # print("GRADE:", apple.grade())
+#     apple = AppleInfo(image, image, image, image, image, image, image)
 
-# #     # time_end = int(time.time() * 1000)
-# #     # time_cap = time_capture - time_start
+#     apple.orig_image = image
 
-# #     # time_total = time_end - time_start
+#     apple.hsv = cv2.cvtColor(apple.orig_image, cv2.COLOR_BGR2HSV)
 
-# #     # print("total time (ms): ", time_total)
-# #     # print("capture time (ms): ", time_cap)
+#     apple.no_back_image = apple.remove_background()
 
-# #     # cv2.waitKey(0)
+#     kernel = np.ones((5, 5), np.uint8) 
+#     img_erosion = cv2.erode(apple.no_back_image, kernel, iterations=1) 
+#     img_dilation = cv2.dilate(img_erosion, kernel, iterations=1)
+
+#     apple.red_image = apple.get_red()
+
+#     apple.get_color_percent()
+#     print("Percent Red = ", apple.percent_red)
 
 
-# # if __name__ == "__main__":
-# #     main()
+#     #apple.erosion()
+#     cv2.imshow("original", apple.orig_image)
+#     # cv2.imshow("erosion", img_erosion)
+#     # cv2.imshow("dilation", img_dilation)
+#     cv2.imshow("no back image", apple.no_back_image)
+#     cv2.imshow("red percentage", apple.red_image)
+#     #cv2.imshow("eroded", apple.erosion_image)
+
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
+#     #apple.dilation()
+
+
+#     # apple.apple_shape = apple.get_shape()
+
+#     # print("GRADE:", apple.grade())
+
+#     # time_end = int(time.time() * 1000)
+#     # time_cap = time_capture - time_start
+
+#     # time_total = time_end - time_start
+
+#     # print("total time (ms): ", time_total)
+#     # print("capture time (ms): ", time_cap)
+
+#     # cv2.waitKey(0)
+
+
+# if __name__ == "__main__":
+#     main()
