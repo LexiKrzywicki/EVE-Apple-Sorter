@@ -18,7 +18,7 @@ while True:
     arduino.reset_input_buffer()
     arduino.reset_output_buffer()
     while state == "waiting":
-        arduino.write(b'A')
+        #arduino.write(b'A')
         #print("made it to waiting")
         if arduino.read() == b'Z':
             grade = 0
@@ -28,6 +28,8 @@ while True:
             image = capture.capture()
             imagePy = image.copy()
             state = "pytorch"
+        else:
+            arduino.write(b'A')
         break
     while state == "pytorch":
         boxes = inference.inference(imagePy)
@@ -77,7 +79,11 @@ while True:
         state = "visionServo"
 
     while state == "visionServo":
-        arduino.write(b'B')
+        #arduino.write(b'B')
+
+        # while arduino.read() != b'Y':
+        #     arduino.write(b'B')
+            
         
         # reads 'Y' when the servo is done moving
         if arduino.read() == b'Y':
@@ -86,25 +92,31 @@ while True:
             time_total = time_end - time_start
             print("Time(s) =", time_total)
             state = "outtake"
+        else:
+            arduino.write(b'B')
         break
 
 
     while state == "outtake":
         if grade == 2:
-            arduino.write(b'C')
+            #arduino.write(b'C')
             if arduino.read() == b'W':
                 state = "waiting"
                 print("ready for next apple")  
                 arduino.reset_input_buffer()
                 arduino.reset_output_buffer()
+            else:
+                arduino.write(b'C')
             break
         if grade == 1:
-            arduino.write(b'D')
+            #arduino.write(b'D')
             if arduino.read() == b'V':
                 state = "waiting"
                 print("ready for next apple")  
                 arduino.reset_input_buffer()
                 arduino.reset_output_buffer()
+            else:
+                arduino.write(b'D')
             break
 
     

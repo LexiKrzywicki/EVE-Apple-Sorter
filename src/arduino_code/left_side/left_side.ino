@@ -45,6 +45,8 @@ bool once = true;
 
 bool upRight = false;
 bool downRight = true;
+bool downLeft = true;
+bool upLeft = false;
 bool upIV = false;
 bool downIV = true;
 
@@ -61,7 +63,7 @@ void setup(){
   pinMode(echoPinO, INPUT);
   visionServo.write(100);
   delay(25);
-  outServo.write(65);
+  outServo.write(55);
   delay(25);
   Serial.begin(9600);
 
@@ -73,10 +75,10 @@ void setup(){
   pinMode(enB_2, INPUT);
   pinMode(in3_2, INPUT);
   pinMode(in4_2, INPUT);
-  digitalWrite(in3_2, HIGH);
-  digitalWrite(in4_2, LOW);
-  upIV = true;
-  downIV = false;
+  digitalWrite(in3_2, LOW);
+  digitalWrite(in4_2, HIGH);
+  upIV = false;
+  downIV = true;
   analogWrite(enB_2, 255);
 
   //converyor motor  
@@ -104,17 +106,24 @@ void setup(){
   //left lift
   pinMode(topSwitchLeftLift, INPUT_PULLUP);
   pinMode(bttmSwitchLeftLift, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(topSwitchLeftLift), goDownLeft, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
+  // attachInterrupt(digitalPinToInterrupt(topSwitchLeftLift), goDownLeft, CHANGE);
+  // attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
   pinMode(enB_1, INPUT);
   pinMode(in3_1, INPUT);
   pinMode(in4_1, INPUT);
-  digitalWrite(in3_1, HIGH);
-  digitalWrite(in4_1, LOW);
+  digitalWrite(in3_1, LOW);
+  digitalWrite(in4_1, HIGH);
+  upRight = false;
+  downRight = true;
   analogWrite(enB_1, 255);
 
 
-  delay(500);
+  // delay(2000);
+
+  attachInterrupt(digitalPinToInterrupt(topSwitchRightLift), goDownRight, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchRightLift), goUpRight, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(topSwitchLeftLift), goDownLeft, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
 }
 
 void loop(){
@@ -132,14 +141,15 @@ if(Serial.available()){
           durationV = pulseIn(echoPinV, HIGH);
           distanceV = durationV * 0.034 / 2;
           delay(100);   //DELAY IS NEEDED TO NOT READ 0
-          if(distanceV <= 14 && distanceV > 5){   //may need to get an average of values
+          //attachInterrupt(digitalPinToInterrupt(topSwitchRightLift), goDownRight, CHANGE);
+          if(distanceV <= 13 && distanceV > 9){   //may need to get an average of values
             delay(500);
             Serial.write("Z");
             once = true;
           }
           break;
         case 'B':    // vision servo
-          if(run){
+          if(run){    //ensures this only runs once even if B is read again
             visionServo.write(10);  //move right vision servo
             delay(2000);
 
@@ -152,8 +162,6 @@ if(Serial.available()){
           }
           break;
         case 'C':  //for G2servo
-      //180 is up to the left this should be the end pos
-        //should start at 0
         if(once){
           outServo.write(65);
           once = false;
@@ -170,7 +178,7 @@ if(Serial.available()){
           if(distanceO <= 12 && runServo){  //if distance detected, servo runs
             outServo.write(120);
             delay(1000);
-            outServo.write(65);
+            outServo.write(55);
             delay(1000);
             
             runServo = false;
@@ -203,7 +211,6 @@ void goUpIV(){
     upIV = true;
     downIV = false;
   }
-
 }
 
 void goDownIV(){
@@ -213,7 +220,6 @@ void goDownIV(){
     downIV = true;
     upIV = false;
   } 
-
 }
 
 void goUpRight(){
@@ -222,31 +228,57 @@ void goUpRight(){
     digitalWrite(in2_1, LOW);
     upRight = true;
     downRight = false;
-    
+    Serial.println("going up");
   }
 }
 
-void goDownRight(){
-  if(upRight){
-    digitalWrite(in1_1, LOW);
-    digitalWrite(in2_1, HIGH);
-    downRight = true;
-    upRight = false;
-  }
+// void goDownRight(){
+//   if(upRight){
+//     digitalWrite(in1_1, LOW);
+//     digitalWrite(in2_1, HIGH);
+//     downRight = true;
+//     upRight = false;
+//     Serial.println("going down");
+//   }
+// }
 
-}
 
 void stop(){
-  digitalWrite(in3_1, LOW);
-  digitalWrite(in4_1, LOW);
-
-  detachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift));
+  if(downLeft){
+    digitalWrite(in3_1, HIGH);
+    digitalWrite(in4_1, LOW);
+    downRight = false;
+    upRight = true;
+    Serial.println("going up");
+  }
+  //detachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift));
 }
 
 void goDownLeft(){
-  digitalWrite(in3_1, LOW);
-  digitalWrite(in4_1, HIGH);
+  if(upLeft){
+    digitalWrite(in3_1, LOW);
+    digitalWrite(in4_1, HIGH);
+    downRight = true;
+    upRight = false;
+    Serial.println("going down");
+  }
 
-  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
+
+  //attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
 }
+
+
+// void stop(){
+//   digitalWrite(in3_1, LOW);
+//   digitalWrite(in4_1, LOW);
+
+//   //detachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift));
+// }
+
+// void goDownLeft(){
+//   digitalWrite(in3_1, LOW);
+//   digitalWrite(in4_1, HIGH);
+
+//   //attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
+// }
 

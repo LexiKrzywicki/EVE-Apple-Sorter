@@ -49,18 +49,18 @@ void setup() {
   Serial.begin(9600);
 
   //lifter motor
-  // pinMode(topSwitch, INPUT_PULLUP);
-  // pinMode(bttmSwitch, INPUT_PULLUP);
-  // attachInterrupt(digitalPinToInterrupt(topSwitch), goDown, CHANGE);
-  // attachInterrupt(digitalPinToInterrupt(bttmSwitch), goUp, CHANGE);
-  // pinMode(enB, INPUT);
-  // pinMode(in3, INPUT);
-  // pinMode(in4, INPUT);
-  // digitalWrite(in3, LOW);
-  // digitalWrite(in4, HIGH);
-  // analogWrite(enB, 255);
+  pinMode(topSwitch, INPUT_PULLUP);
+  pinMode(bttmSwitch, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(topSwitch), goDown, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitch), goUp, CHANGE);
+  pinMode(enB, INPUT);
+  pinMode(in3, INPUT);
+  pinMode(in4, INPUT);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+  analogWrite(enB, 255);
 
-  //converyor motor
+  //conveyor motor
   pinMode(enA, OUTPUT);
   pinMode(in1, OUTPUT);
   pinMode(in2, OUTPUT);
@@ -90,13 +90,11 @@ void disableLifterInt(){
 // }
 
 void goUp(){
-  delay(500);
   digitalWrite(in3, HIGH);
   digitalWrite(in4, LOW);
 }
 
 void goDown(){
-  delay(500);
   digitalWrite(in3, LOW);
   digitalWrite(in4, HIGH);
 }
@@ -138,8 +136,6 @@ void loop(){
           }
           break;
         case 'C':  //for G1servo
-        //180 is up to the left this should be the end pos
-        //should start at 0
         if(once){
           outServo.write(65);
           once = false;

@@ -1,29 +1,11 @@
-#include <Servo.h>
+int topSwitchIV = 21;
+int bttmSwitchIV = 20; 
 
-int topSwitchRightLift = 18;
-int bttmSwitchRightLift = 19;
+int topSwitchRightLift = 3;
+int bttmSwitchRightLift = 2;
 
-int topSwitchLeftLift = 3;
-int bttmSwitchLeftLift = 2;
-
-int enA_2 = 35;  //conveyor
-int in1_2 = 37;
-int in2_2 = 39;
-int in3_2 = 41;   //lift
-int in4_2 = 43;
-int enB_2 = 45;
-
-int enA_1 = 8;   //right
-int in1_1 = 9;   
-int in2_1 = 10;
-int in3_1 = 11;  //left
-int in4_1 = 12;
-int enB_1 = 13;
-
-bool upRight = false;
-bool downRight = true;
-bool upIV = false;
-bool downIV = true;
+int topSwitchLeftLift = 19;
+int bttmSwitchLeftLift = 18;
 
 //ultrasonics
 const int trigPinV = 47;
@@ -35,25 +17,47 @@ int distanceV = 30;
 long durationO;
 int distanceO;
 
+//motor driver 1 - left and right lifters
+int enA_1 = 8;   //right
+int in1_1 = 9;   
+int in2_1 = 10;
+int in3_1 = 11;  //left
+int in4_1 = 12;
+int enB_1 = 13;
 
-Servo visionServo;
-Servo outServo;
+//motor driver 2 - conveyor and I->V lifter
+int enA_2 = 35;  //conveyor
+int in1_2 = 37;
+int in2_2 = 39;
+int in3_2 = 41;   //lift
+int in4_2 = 43;
+int enB_2 = 45;
 
+bool upRight = false;
+bool downRight = true;
+bool downLeft = true;
+bool upLeft = false;
+bool upIV = false;
+bool downIV = true;
 
-void setup(){
-  pinMode(trigPinV, OUTPUT);
-  pinMode(echoPinV, INPUT);
-  visionServo.attach(51);
-  outServo.attach(53);
-  pinMode(trigPinO, OUTPUT);
-  pinMode(echoPinO, INPUT);
-  visionServo.write(100);
-  delay(25);
-  outServo.write(53);
-  delay(25);
+void setup() {
+
   Serial.begin(9600);
+  //right lift
+  pinMode(topSwitchRightLift, INPUT_PULLUP);
+  pinMode(bttmSwitchRightLift, INPUT_PULLUP);
+  //attachInterrupt(digitalPinToInterrupt(topSwitchRightLift), goDownRight, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(bttmSwitchRightLift), goUpRight, CHANGE);
+  pinMode(enA_1, INPUT);
+  pinMode(in1_1, INPUT);
+  pinMode(in2_1, INPUT);
+  digitalWrite(in1_1, HIGH);
+  digitalWrite(in2_1, LOW);
+  upRight = true;
+  downRight = false;
+  analogWrite(enA_1, 255);
 
-  //conveyor
+
   pinMode(enA_2, OUTPUT);
   pinMode(in1_2, OUTPUT);
   pinMode(in2_2, OUTPUT);
@@ -64,50 +68,65 @@ void setup(){
   //left lift
   pinMode(topSwitchLeftLift, INPUT_PULLUP);
   pinMode(bttmSwitchLeftLift, INPUT_PULLUP);
+  // // attachInterrupt(digitalPinToInterrupt(topSwitchLeftLift), goDownLeft, CHANGE);
+  // // attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
+  // pinMode(enB_1, INPUT);
+  // pinMode(in3_1, INPUT);
+  // pinMode(in4_1, INPUT);
+  // digitalWrite(in3_1, LOW);
+  // digitalWrite(in4_1, HIGH);
+  // upRight = false;
+  // downRight = true;
+  // analogWrite(enB_1, 255);
+
+  attachInterrupt(digitalPinToInterrupt(topSwitchRightLift), goDownRight, RISING);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchRightLift), goUpRight, RISING);
   attachInterrupt(digitalPinToInterrupt(topSwitchLeftLift), goDownLeft, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
-  pinMode(enB_1, INPUT);
-  pinMode(in3_1, INPUT);
-  pinMode(in4_1, INPUT);
-  digitalWrite(in3_1, LOW);
-  digitalWrite(in4_1, HIGH);
-  analogWrite(enB_1, 255);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), goUpLeft, CHANGE);
 }
 
-void loop(){
-  digitalWrite(trigPinO, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPinO, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPinO, LOW)
-  durationO = pulseIn(echoPinO, HIGH);
-  distanceO = durationO * 0.034 / 2;
-  delay(100);   //DELAY IS NEEDED TO NOT READ 0
-  Serial.println(distanceO);
-  if(distanceO <= 12){  //if distance detected, servo runs
-    delay(1000);
-    outServo.write(120);
-    delay(1000);
-    outServo.write(53);
-    delay(1000);
 
-    //raise the lift
-    digitalWrite(in3_1, HIGH);
-    digitalWrite(in4_1, LOW);
+// Code will have the lifter going up first
+void loop() {
+}
+
+void goUpRight(){
+  if(downRight){
+    digitalWrite(in1_1, HIGH);
+    digitalWrite(in2_1, LOW);
+    upRight = true;
+    downRight = false;
+    Serial.println("going up");
+  }
+}
+
+void goDownRight(){
+  if(upRight){
+    digitalWrite(in1_1, LOW);
+    digitalWrite(in2_1, HIGH);
+    downRight = true;
+    upRight = false;
+    Serial.println("going down");
   }
 }
 
 
-void stop(){
-  digitalWrite(in3_1, LOW);
-  digitalWrite(in4_1, LOW);
-
-  detachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift));
+void goUpLeft(){
+  if(downLeft){
+    digitalWrite(in3_1, HIGH);
+    digitalWrite(in4_1, LOW);
+    downLeft = false;
+    upLeft = true;
+    Serial.println("going up");
+  }
 }
 
 void goDownLeft(){
-  digitalWrite(in3_1, LOW);
-  digitalWrite(in4_1, HIGH);
-
-  attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
+  if(upLeft){
+    digitalWrite(in3_1, LOW);
+    digitalWrite(in4_1, HIGH);
+    downLeft = true;
+    upLeft = false;
+    Serial.println("going down");
+  }
 }
