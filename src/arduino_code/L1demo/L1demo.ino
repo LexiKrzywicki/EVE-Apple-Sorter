@@ -79,11 +79,13 @@ void setup(){
 
   delay(1000);
 
-
+  Serial.println("setup complete");
 
 }
 
+
 void loop(){
+
   switch(stage){
     case 'I':
       digitalWrite(trigPinV, LOW);
@@ -94,25 +96,36 @@ void loop(){
       durationV = pulseIn(echoPinV, HIGH);
       distanceV = durationV * 0.034 / 2;
       delay(100);   //DELAY IS NEEDED TO NOT READ 0
-      if(distanceV <= 11 && distanceV > 9){
-        //Serial.println(distanceV);
+      // Serial.println(distanceV);
+      // Serial.println(stage);
+      if(distanceV <= 13 && distanceV > 9){
+        // Serial.print("Distance: ");
+        // Serial.println(distanceV);
+        Serial.println("going into stage V");
         stage = 'V';
-        break;
       }
+      break;
     case 'V':
+      Serial.print("Count: ");
       Serial.println(count);
       if(count % 2 == 0){   //raise outServo for g2
+        //delay(1000);
         outServo.write(100);
+        delay(1000);
+        // Serial.println("going into stage I");
         stage = 'I';
       }
       else{
+        delay(1000);
         outServo.write(65);
+        delay(1000);
+        // Serial.println("going into stage O");
         stage = 'O';
       }
       visionServo.write(150);
-      delay(2000);
+      delay(1000);
       visionServo.write(60); // move arm back to original pos
-      delay(2000);
+      delay(1000);
       count++;
       break;
     case 'O':
@@ -122,25 +135,21 @@ void loop(){
       delayMicroseconds(10);
       digitalWrite(trigPinO, LOW);
       durationO = pulseIn(echoPinO, HIGH);
-      distanceO = durationV * 0.034 / 2;
+      distanceO = durationO * 0.034 / 2;
       delay(100);   //DELAY IS NEEDED TO NOT READ 0
-      Serial.println(distanceO);
       if(distanceO <= 12){
         outServo.write(0);
         delay(2000);
         outServo.write(100);
         delay(2000);
+        Serial.println("going into stage I");
         stage = 'I';
-        break;
       }
+      break;
     default:
       break;
     delay(1000);
-}
-
-
-  
-  
+  }
 }
 
 void goUpIV(){
