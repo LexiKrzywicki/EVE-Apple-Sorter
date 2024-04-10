@@ -35,7 +35,7 @@ bool downIV = true;
 Servo visionServo;
 Servo outServo;
 
-
+bool stopped = false;
 char stage = 'I';
 int count = 0;
 
@@ -59,10 +59,10 @@ void setup(){
   pinMode(enB, INPUT);
   pinMode(in3, INPUT);
   pinMode(in4, INPUT);
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
-  upIV = true;
-  downIV = false;
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+  upIV = false;
+  downIV = true;
 
   analogWrite(enB, 255);
 
@@ -75,9 +75,11 @@ void setup(){
   analogWrite(enA, 255);
 
   attachInterrupt(digitalPinToInterrupt(topSwitch), goDownIV, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(bttmSwitch), goUpIV, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitch), stop, CHANGE);
 
   delay(1000);
+
+  while(digitalRead(in3) == HIGH || digitalRead(in4) == HIGH){}
 
   Serial.println("setup complete");
 
@@ -85,6 +87,13 @@ void setup(){
 
 
 void loop(){
+
+  if(stopped){
+    delay(2000);
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+    stopped = false;
+  }
 
   switch(stage){
     case 'I':
@@ -101,13 +110,13 @@ void loop(){
       if(distanceV <= 13 && distanceV > 9){
         // Serial.print("Distance: ");
         // Serial.println(distanceV);
-        Serial.println("going into stage V");
+        // Serial.println("going into stage V");
         stage = 'V';
       }
       break;
     case 'V':
-      Serial.print("Count: ");
-      Serial.println(count);
+      // Serial.print("Count: ");
+      // Serial.println(count);
       if(count % 2 == 0){   //raise outServo for g2
         //delay(1000);
         outServo.write(100);
@@ -142,7 +151,7 @@ void loop(){
         delay(2000);
         outServo.write(100);
         delay(2000);
-        Serial.println("going into stage I");
+        // Serial.println("going into stage I");
         stage = 'I';
       }
       break;
@@ -152,12 +161,15 @@ void loop(){
   }
 }
 
-void goUpIV(){
+void stop(){
   if(downIV){
-    digitalWrite(in3, HIGH);
+    digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
     upIV = true;
     downIV = false;
+    stopped = true;
+
+    detachInterrupt(digitalPinToInterrupt(bttmSwitch));
   }
 }
 
@@ -167,10 +179,8 @@ void goDownIV(){
     digitalWrite(in4, HIGH);
     downIV = true;
     upIV = false;
-  } 
-}
+    stopped = false;
 
-void stop(){
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, LOW);
+    attachInterrupt(digitalPinToInterrupt(bttmSwitch), stop, CHANGE); 
+  } 
 }
