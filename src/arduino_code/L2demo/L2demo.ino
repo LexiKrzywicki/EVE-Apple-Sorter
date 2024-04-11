@@ -71,10 +71,10 @@ void setup(){
   pinMode(enB_2, INPUT);
   pinMode(in3_2, INPUT);
   pinMode(in4_2, INPUT);
-  digitalWrite(in3_2, HIGH);
-  digitalWrite(in4_2, LOW);
-  upIV = true;
-  downIV = false;
+  digitalWrite(in3_2, LOW);
+  digitalWrite(in4_2, HIGH);
+  upIV = false;
+  downIV = true;
   analogWrite(enB_2, 255);
 
   //converyor motor  
@@ -86,16 +86,16 @@ void setup(){
   analogWrite(enA_2, 255);
 
   //right lift
-  // pinMode(topSwitchRightLift, INPUT_PULLUP);
-  // pinMode(bttmSwitchRightLift, INPUT_PULLUP);
-  // pinMode(enA_1, INPUT);
-  // pinMode(in1_1, INPUT);
-  // pinMode(in2_1, INPUT);
-  // digitalWrite(in1_1, LOW);
-  // digitalWrite(in2_1, HIGH);
-  // upRight = false;
-  // downRight = true;
-  // analogWrite(enA_1, 255);
+  pinMode(topSwitchRightLift, INPUT_PULLUP);
+  pinMode(bttmSwitchRightLift, INPUT_PULLUP);
+  pinMode(enA_1, INPUT);
+  pinMode(in1_1, INPUT);
+  pinMode(in2_1, INPUT);
+  digitalWrite(in1_1, HIGH);
+  digitalWrite(in2_1, LOW);
+  upRight = true;
+  downRight = false;
+  analogWrite(enA_1, 255);
 
   // //left lift
   pinMode(topSwitchLeftLift, INPUT_PULLUP);
@@ -103,17 +103,17 @@ void setup(){
   pinMode(enB_1, INPUT);
   pinMode(in3_1, INPUT);
   pinMode(in4_1, INPUT);
-  digitalWrite(in3_1, LOW);
-  digitalWrite(in4_1, HIGH);
-  upLeft = false;
-  downLeft = true;
+  digitalWrite(in3_1, HIGH);
+  digitalWrite(in4_1, LOW);
+  upLeft = true;
+  downLeft = false;
   analogWrite(enB_1, 255);
 
 
-  delay(5000);
+  delay(1000);
 
-  // attachInterrupt(digitalPinToInterrupt(topSwitchRightLift), goDownRight, CHANGE);
-  // attachInterrupt(digitalPinToInterrupt(bttmSwitchRightLift), goUpRight, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(topSwitchRightLift), goDownRight, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(bttmSwitchRightLift), goUpRight, CHANGE);
   attachInterrupt(digitalPinToInterrupt(topSwitchLeftLift), goDownLeft, CHANGE);
   attachInterrupt(digitalPinToInterrupt(bttmSwitchLeftLift), stop, CHANGE);
   attachInterrupt(digitalPinToInterrupt(topSwitchIV), goDownIV, CHANGE);
